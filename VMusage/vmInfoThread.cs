@@ -151,6 +151,7 @@ namespace VMusage
                         procStatsQueueBytes.Enqueue(pvmi.toByte());
                         _totalMemUse += pvmi.memusage;
                     }
+                    //enqueue the whole list in once
 
                     onUpdateHandler(new procVMinfoEventArgs(myList, _totalMemUse));
                     procStatsQueueBytes.Enqueue(ByteHelper.endOfTransferBytes);
