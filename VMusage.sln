@@ -7,6 +7,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VirtualMemory", "VirtualMem
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CeGetProcVMInfo", "CeGetProcVMInfo\CeGetProcVMInfo.vcproj", "{17A0BA8E-096E-4CD4-9B1A-6F0C28254BD4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VMusageRecvr", "VMusageRecvr\VMusageRecvr.csproj", "{4CA30FE6-A397-4234-9A9B-E0524A47FC7F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "C2DPushGraph", "VMusageRecvr\PushGraph\C2DPushGraph.csproj", "{290BF7F1-91BB-4AE0-A89B-9320EC1B2619}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,7 +28,6 @@ Global
 		{FFFDDA5D-B2CA-4C3D-B67B-CD049C7BE2DC}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
 		{FFFDDA5D-B2CA-4C3D-B67B-CD049C7BE2DC}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
 		{FFFDDA5D-B2CA-4C3D-B67B-CD049C7BE2DC}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{FFFDDA5D-B2CA-4C3D-B67B-CD049C7BE2DC}.Debug|Mixed Platforms.Deploy.0 = Debug|Any CPU
 		{FFFDDA5D-B2CA-4C3D-B67B-CD049C7BE2DC}.Debug|Windows Mobile 5.0 Pocket PC SDK (ARMV4I).ActiveCfg = Debug|Any CPU
 		{FFFDDA5D-B2CA-4C3D-B67B-CD049C7BE2DC}.Debug|Windows Mobile 5.0 Smartphone SDK (ARMV4I).ActiveCfg = Debug|Any CPU
 		{FFFDDA5D-B2CA-4C3D-B67B-CD049C7BE2DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -67,6 +70,29 @@ Global
 		{17A0BA8E-096E-4CD4-9B1A-6F0C28254BD4}.Release|Windows Mobile 5.0 Pocket PC SDK (ARMV4I).Build.0 = Release|Windows Mobile 5.0 Pocket PC SDK (ARMV4I)
 		{17A0BA8E-096E-4CD4-9B1A-6F0C28254BD4}.Release|Windows Mobile 5.0 Pocket PC SDK (ARMV4I).Deploy.0 = Release|Windows Mobile 5.0 Pocket PC SDK (ARMV4I)
 		{17A0BA8E-096E-4CD4-9B1A-6F0C28254BD4}.Release|Windows Mobile 5.0 Smartphone SDK (ARMV4I).ActiveCfg = Release|Windows Mobile 5.0 Pocket PC SDK (ARMV4I)
+		{4CA30FE6-A397-4234-9A9B-E0524A47FC7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4CA30FE6-A397-4234-9A9B-E0524A47FC7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4CA30FE6-A397-4234-9A9B-E0524A47FC7F}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{4CA30FE6-A397-4234-9A9B-E0524A47FC7F}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{4CA30FE6-A397-4234-9A9B-E0524A47FC7F}.Debug|Windows Mobile 5.0 Pocket PC SDK (ARMV4I).ActiveCfg = Debug|Any CPU
+		{4CA30FE6-A397-4234-9A9B-E0524A47FC7F}.Debug|Windows Mobile 5.0 Smartphone SDK (ARMV4I).ActiveCfg = Debug|Any CPU
+		{4CA30FE6-A397-4234-9A9B-E0524A47FC7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4CA30FE6-A397-4234-9A9B-E0524A47FC7F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4CA30FE6-A397-4234-9A9B-E0524A47FC7F}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{4CA30FE6-A397-4234-9A9B-E0524A47FC7F}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{4CA30FE6-A397-4234-9A9B-E0524A47FC7F}.Release|Windows Mobile 5.0 Pocket PC SDK (ARMV4I).ActiveCfg = Release|Any CPU
+		{4CA30FE6-A397-4234-9A9B-E0524A47FC7F}.Release|Windows Mobile 5.0 Smartphone SDK (ARMV4I).ActiveCfg = Release|Any CPU
+		{290BF7F1-91BB-4AE0-A89B-9320EC1B2619}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{290BF7F1-91BB-4AE0-A89B-9320EC1B2619}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{290BF7F1-91BB-4AE0-A89B-9320EC1B2619}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{290BF7F1-91BB-4AE0-A89B-9320EC1B2619}.Debug|Windows Mobile 5.0 Pocket PC SDK (ARMV4I).ActiveCfg = Debug|Any CPU
+		{290BF7F1-91BB-4AE0-A89B-9320EC1B2619}.Debug|Windows Mobile 5.0 Smartphone SDK (ARMV4I).ActiveCfg = Debug|Any CPU
+		{290BF7F1-91BB-4AE0-A89B-9320EC1B2619}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{290BF7F1-91BB-4AE0-A89B-9320EC1B2619}.Release|Any CPU.Build.0 = Release|Any CPU
+		{290BF7F1-91BB-4AE0-A89B-9320EC1B2619}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{290BF7F1-91BB-4AE0-A89B-9320EC1B2619}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{290BF7F1-91BB-4AE0-A89B-9320EC1B2619}.Release|Windows Mobile 5.0 Pocket PC SDK (ARMV4I).ActiveCfg = Release|Any CPU
+		{290BF7F1-91BB-4AE0-A89B-9320EC1B2619}.Release|Windows Mobile 5.0 Smartphone SDK (ARMV4I).ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
