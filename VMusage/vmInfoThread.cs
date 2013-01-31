@@ -146,14 +146,25 @@ namespace VMusage
                     
                     System.Threading.Thread.Sleep(interval);
 
+                    //enqueue itemby item
                     uint _totalMemUse = 0;
                     foreach(VMusage.procVMinfo pvmi in myList){
                         procStatsQueueBytes.Enqueue(pvmi.toByte());
                         _totalMemUse += pvmi.memusage;
                     }
-                    //enqueue the whole list in once
 
                     onUpdateHandler(new procVMinfoEventArgs(myList, _totalMemUse));
+
+                    //send MemoryStatusInfo
+                    memorystatus.MemoryInfo.MEMORYSTATUS mstat = new memorystatus.MemoryInfo.MEMORYSTATUS();
+                    if (memorystatus.MemoryInfo.GetMemoryStatus(ref mstat))
+                    {
+                        MemoryInfoHelper memoryInfoStat= new MemoryInfoHelper(mstat);
+                        //send header
+                        procStatsQueueBytes.Enqueue(ByteHelper.meminfostatusBytes);
+                        procStatsQueueBytes.Enqueue(memoryInfoStat.toByte());
+                    }
+
                     procStatsQueueBytes.Enqueue(ByteHelper.endOfTransferBytes);
                     ((AutoResetEvent)eventEnableSend).Set();
                 }//while true

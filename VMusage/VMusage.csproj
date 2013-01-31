@@ -70,6 +70,7 @@
     <Compile Include="memorybar2.Designer.cs">
       <DependentUpon>memorybar2.cs</DependentUpon>
     </Compile>
+    <Compile Include="MemoryInfoHelper.cs" />
     <Compile Include="memorystatus.cs" />
     <Compile Include="procVMinfoEventArgs.cs" />
     <Compile Include="procVMinfo.cs" />

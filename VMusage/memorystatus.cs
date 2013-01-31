@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 using System.Runtime.InteropServices;
 
 namespace VMusage
 {
-    class memorystatus
+    public class memorystatus
     {
         #region MEMORY_INFO
         public class MemoryInfo
@@ -29,7 +28,7 @@ namespace VMusage
                 ref MEMORYSTATUS lpBuffer
             );
 
-            static bool GetMemoryStatus(ref MEMORYSTATUS memStatus)
+            public static bool GetMemoryStatus(ref MEMORYSTATUS memStatus)
             {
                 bool result = true;
                 // Call the native GlobalMemoryStatus method

@@ -1,0 +1,191 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Text;
+using System.Windows.Forms;
+
+using DataAccessVM;
+
+namespace VMusageRecvr
+{
+    public partial class frmMain : Form
+    {
+        RecvBroadcst recvr;
+        Queue<VMusage.procVMinfo> dataQueue;
+        DataAccess dataAccess; 
+        
+        bool _bAllowGUIupdate = true;
+        bool bAllowGUIupdate
+        {
+            get { return _bAllowGUIupdate; }
+            set
+            {
+                _bAllowGUIupdate = value;
+                if (_bAllowGUIupdate)
+                    recvr.StartReceive();
+                else
+                    recvr.StopReceive();
+            }
+        }
+        public frmMain()
+        {
+            InitializeComponent();
+            //the plot graph
+            c2DPushGraph1.AutoAdjustPeek = true;
+            c2DPushGraph1.MaxLabel = "32";
+            c2DPushGraph1.MaxPeekMagnitude = 32;
+            c2DPushGraph1.MinPeekMagnitude = 0;
+            c2DPushGraph1.MinLabel = "0";
+
+            dataQueue = new Queue<VMusage.procVMinfo>();
+
+            dataAccess = new DataAccess(this.dataGridView1, ref dataQueue);
+            
+            recvr = new RecvBroadcst();
+            recvr.onUpdate += new RecvBroadcst.delegateUpdate(recvr_onUpdate);
+            recvr.onEndOfTransfer += new RecvBroadcst.delegateEndOfTransfer(recvr_onEndOfTransfer);
+
+            recvr.onUpdateMem += new RecvBroadcst.delegateUpdateMem(recvr_onUpdateMem);
+        }
+
+        void recvr_onUpdateMem(object sender, VMusage.MemoryInfoHelper data)
+        {
+            addLog(data.ToString());
+        }
+        void recvr_onEndOfTransfer(object sender, EventArgs e)
+        {
+            System.Diagnostics.Debug.WriteLine("<EOT>");
+            if (!bAllowGUIupdate)
+                return;
+
+            //get data
+            uint iUser = dataAccess.lastTotaMemUse;
+            dataAccess.lastTotaMemUse = 0;
+            //DateTime dtUser = dataAccess.lastMemMeasure;
+            if (iUser != 0)
+                updateGraph(iUser);
+
+            //asign the chart control
+            //DataView dView = new DataView(
+            //    dsData.Tables["Processes"],
+            //    "ProcID=3197842474",
+            //    "theTime",
+            //    DataViewRowState.CurrentRows);
+
+            //chart1.Series[0].XValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.Time;
+            //string sFormat = chart1.ChartAreas[0].AxisX.LabelStyle.Format = "HH:mm:ss";
+            //chart1.Series[0].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            //chart1.Series[0].Points.DataBindXY(dView, "theTime", dView, "user");
+            //            chart1.DataSource = dsData.Tables["Processes"];
+        }
+        delegate void updateGraphCallback(uint val);
+        void updateGraph(uint val)
+        {
+            if (this.c2DPushGraph1.InvokeRequired)
+            {
+                updateGraphCallback d = new updateGraphCallback(updateGraph);
+                this.Invoke(d, new object[] { val });
+            }
+            else
+            {
+                val = (uint)(val / 1000000f);
+                c2DPushGraph1.MaxLabel = c2DPushGraph1.MaxPeekMagnitude.ToString();
+                c2DPushGraph1.AddLine(42, Color.Red);
+                c2DPushGraph1.Push((int)val, 42);
+                c2DPushGraph1.UpdateGraph();
+            }
+        }
+        public void myDispose()
+        {
+            recvr.onUpdate -= recvr_onUpdate;
+            recvr.StopReceive();
+            recvr.Dispose();
+            recvr = null;
+
+            base.Dispose();
+        }
+        //################### data display etc...
+
+
+        delegate void addDataCallback(VMusage.procVMinfo vmdata);
+        void addData(VMusage.procVMinfo vmdata)
+        {
+            if (this.dataGridView1.InvokeRequired)
+            {
+                addDataCallback d = new addDataCallback(addData);
+                this.Invoke(d, new object[] { vmdata });
+            }
+            else
+            {
+                dataGridView1.SuspendLayout();
+                //enqueue data to be saved to sqlite
+                dataQueue.Enqueue(vmdata);
+
+                if (bAllowGUIupdate)
+                {
+                    //dataAccess.addSqlData(procStats);
+
+                    //dtProcesses.Rows.Clear();
+
+                    dataAccess.addData(vmdata);
+
+
+                    //release queue data
+                    dataAccess.waitHandle.Set();
+
+                    //object[] o = new object[7]{ procUsage.procStatistics. .procStatistics. [i].sApp, eventEntries[i].sArg, eventEntries[i].sEvent, 
+                    //        eventEntries[i].sStartTime, eventEntries[i].sEndTime, eventEntries[i].sType, eventEntries[i].sHandle };
+                }
+                dataGridView1.Refresh();
+                dataGridView1.ResumeLayout();
+            }
+        }
+
+        void recvr_onUpdate(object sender, VMusage.procVMinfo data)
+        {
+            //string s = data.processID.ToString() + ", " +
+            //        data.sName + ", " +
+            //        data.procUsage.user.ToString() + ", " +
+            //        data.duration.ToString();
+            ////addLog(s);
+
+            //System.Diagnostics.Debug.WriteLine( data.dumpStatistics() );
+            addData(data);
+        }
+        delegate void SetTextCallback(string text);
+        public void addLog(string text)
+        {
+            // InvokeRequired required compares the thread ID of the
+            // calling thread to the thread ID of the creating thread.
+            // If these threads are different, it returns true.
+            if (this.txtLog.InvokeRequired)
+            {
+                SetTextCallback d = new SetTextCallback(addLog);
+                this.Invoke(d, new object[] { text });
+            }
+            else
+            {
+                if (txtLog.Text.Length > 4000)
+                    txtLog.Text = "";
+                txtLog.Text += text + "\r\n";
+                txtLog.SelectionLength = 0;
+                txtLog.SelectionStart = txtLog.Text.Length - 1;
+                txtLog.ScrollToCaret();
+            }
+        }
+
+        private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            myDispose();
+        }
+
+        private void mnuExit_Click(object sender, EventArgs e)
+        {
+            myDispose();
+            System.Threading.Thread.Sleep(1000);
+            Application.Exit();
+        }
+    }
+}
