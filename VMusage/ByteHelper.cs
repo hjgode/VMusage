@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 
@@ -33,5 +32,48 @@ namespace VMusage
             }
             return bRet;
         }
+        const UInt64 magicMemInfoStatus = 0x1122334455667788;
+        public static byte[] meminfostatusBytes
+        {
+            get
+            {
+                return BitConverter.GetBytes(magicMemInfoStatus);
+            }
+        }
+
+        public static bool isMemInfoPacket(byte[] buf)
+        {
+            bool bRet = false;
+            if (buf.Length != 36)
+                return bRet;
+
+            int bLen = ByteHelper.meminfostatusBytes.Length;
+            if (buf.Length < bLen)
+                return bRet;
+
+            UInt64 u64 = BitConverter.ToUInt64(buf, 0);
+            if (u64 == magicMemInfoStatus)
+                bRet = true;
+
+            return bRet;
+        }
+
+        static bool isMemInfoStatus(byte[] buf){
+            bool bRet = false;
+            if (buf.Length != 8)
+                return bRet;
+            try
+            {
+                UInt64 u64 = BitConverter.ToUInt64(buf, 0);
+                if (u64 == magicMemInfoStatus)
+                    bRet = true;
+            }
+            catch (Exception)
+            {
+                bRet = false;
+            }
+            return bRet;
+        }
+
     }
 }
