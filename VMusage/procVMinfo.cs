@@ -13,13 +13,15 @@ namespace VMusage
         public string name;
         public UInt32 memusage;
         public byte slot;
+        public UInt32 procID;
         public long Time;
 
-        public procVMinfo(string n, uint m, byte s)
+        public procVMinfo(string n, UInt32 pID, uint m, byte bSlot)
         {
             name = n;
             memusage = m;
-            slot = s;
+            slot = bSlot;
+            procID = pID;
             Time = DateTime.Now.ToFileTimeUtc();
         }
         public procVMinfo(byte[] buf)
@@ -28,7 +30,7 @@ namespace VMusage
         }
         public override string ToString()
         {
-            return slot.ToString() + ":" + name + ": " + memusage.ToString() + " bytes";
+            return slot.ToString() + ":" + name + ": 0x" + procID.ToString("x") + ": " + memusage.ToString() + " bytes";
         }
         public byte[] toByte()
         {
@@ -42,7 +44,9 @@ namespace VMusage
             buf.AddRange(BitConverter.GetBytes(len));
             //name string
             buf.AddRange(Encoding.UTF8.GetBytes(name));
-            
+            //procID
+            buf.AddRange(BitConverter.GetBytes((UInt32)procID));
+
             return buf.ToArray();
         }
         public procVMinfo fromBytes(byte[] buf)
@@ -62,6 +66,8 @@ namespace VMusage
             {
                 this.name = System.Text.Encoding.UTF8.GetString(buf, offset, bLen);
             }
+            offset += bLen;
+            this.procID = BitConverter.ToUInt32(buf, offset);
             return this;
         }
     }

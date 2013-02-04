@@ -27,6 +27,7 @@ namespace DataAccessVM
             new _fieldsDefine("name", "System.String"),
             new _fieldsDefine("memusage", "System.Int64"),
             new _fieldsDefine("slot", "System.Byte"),
+            new _fieldsDefine("procID", "System.Int64"),
             new _fieldsDefine("Time", "System.DateTime"),
             new _fieldsDefine("idx", "System.UInt64"),
         };
@@ -54,6 +55,7 @@ namespace DataAccessVM
 
         Queue<VMusage.procVMinfo> dataQueue;
         Thread myDataThread;
+        bool bRunDataThread = true;
 
         public uint lastTotaMemUse = 0;
         public DateTime lastMemMeasure;
@@ -88,6 +90,8 @@ namespace DataAccessVM
         }
         public void Dispose()
         {
+            bRunDataThread = false;
+            waitHandle.Set();
             myDataThread.Abort();
         }
 
@@ -95,7 +99,7 @@ namespace DataAccessVM
         {
             try
             {
-                while (true)
+                while (bRunDataThread)
                 {
                     waitHandle.WaitOne();
                     if (dataQueue.Count > 10)
@@ -157,6 +161,7 @@ namespace DataAccessVM
                     vmInfo.name,
                     vmInfo.memusage,
                     vmInfo.slot,
+                    vmInfo.procID,
                     new DateTime(vmInfo.Time),
                     0,
                 };
@@ -185,7 +190,7 @@ namespace DataAccessVM
             return bRet;
         }
         
-        public int ExportProcess2CSV(string sFileCSV)
+        public int ExportMemUsage2CSV(string sFileCSV)
         {
             //pause data read thread (socksrv)?
             sql_cmd = new SQLiteCommand();
@@ -198,8 +203,9 @@ namespace DataAccessVM
             }
             sql_cmd = sql_con.CreateCommand();
             int iCnt = 0;
-            sql_cmd.CommandText="select * from processes";
+            sql_cmd.CommandText="select * from vmUsage";
             SQLiteDataReader rdr = null;
+
             try
             {
                 System.IO.StreamWriter sw = new System.IO.StreamWriter(sFileCSV);
@@ -209,6 +215,7 @@ namespace DataAccessVM
                         "Name" + ";" +
                         "Memusage" + ";" +
                         "Slot" + ";" +
+                        "ProcID" + ";" +
                         "Time" + ";" +
                         "Idx" +
                         "\r\n"
@@ -219,15 +226,24 @@ namespace DataAccessVM
                     iCnt++;
                     //Console.WriteLine(rdr["ProcID"] + " " + rdr["User"]);
                     sw.Write(
-                        "\"" + rdr["RemoteIP"] + "\";" + 
-                        "\"" + rdr["Name"] + "\";" + 
+                        "\"" + rdr["RemoteIP"] + "\";" +
+                        "\"" + rdr["Name"] + "\";" +
                         rdr["Memusage"] + ";" +
                         rdr["Slot"] + ";" +
+                        rdr["ProcID"] + ";" +
                         DateTime.FromBinary((long)rdr["Time"]).ToString("hh:mm:ss.fff") + ";" +
                         rdr["Idx"] +
                         "\r\n"
                         );
                 }
+            }
+            catch (SQLiteException ex)
+            {
+                System.Diagnostics.Debug.WriteLine("ExportMemUsage2CSV: " + sql_cmd.CommandText + " " + ex.Message);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("ExportMemUsage2CSV: " + sql_cmd.CommandText + " " + ex.Message);
             }
             finally
             {
@@ -379,181 +395,6 @@ namespace DataAccessVM
             return ipList.ToArray();
         }
 
-        public int export2CSV2(string sFileCSV, string strIP)
-        {
-            //### setup
-            sql_cmd = new SQLiteCommand();
-            sql_con = new SQLiteConnection();
-            SQLiteDataReader sql_rdr;
-            connectDB();
-            if (sql_con.State != ConnectionState.Open)
-            {
-                sql_con.Close();
-                sql_con.Open();
-            }
-            sql_cmd = sql_con.CreateCommand();
-            long lCnt = 0;
-
-            //### Build a List of known processes
-            if(strIP!="")
-                sql_cmd.CommandText = "Select DISTINCT Process from processes WHERE [RemoteIP]='"+strIP+"' order by Process";
-            else
-                sql_cmd.CommandText = "Select DISTINCT Process from processes order by Process";
-            List<string> lProcesses= new List<string>();
-            sql_rdr = sql_cmd.ExecuteReader();
-            while (sql_rdr.Read())
-            {
-                lProcesses.Add((string)sql_rdr["Process"]);
-                Application.DoEvents();
-            }
-            sql_rdr.Close();
-            sql_rdr.Dispose();
-
-            //create a new table with the process names as fields
-            string sProcField = "";
-            foreach (string sProc in lProcesses)
-            {
-                sProcField += "[" + sProc + "] INTEGER,";
-            }
-            //remove last comma of string
-            sProcField = sProcField.TrimEnd(new char[] { ',' });
-            //insert time field
-            sProcField = "[Time] INTEGER, " + sProcField;
-            //insert RemoteIP field for references
-            sProcField = "[RemoteIP] TEXT NOT NULL, "+ sProcField;
-            //delete existing table            
-            lCnt = executeNonQuery("DROP Table IF EXISTS [ProcUsage] ;");
-            //create new one
-            lCnt = executeNonQuery("Create Table [ProcUsage] (" + sProcField + ");");
-            
-            //### get all process,user,time data
-            List<PROCESS_USAGE_IP> lProcessUsages = new List<PROCESS_USAGE_IP>();
-            if(strIP!="")
-                sql_cmd.CommandText = "Select RemoteIP,Process,User,Time from processes WHERE [RemoteIP]='" + strIP + "' order by Time";
-            else
-                sql_cmd.CommandText = "Select RemoteIP,Process,User,Time from processes order by Time";
-
-            sql_rdr = sql_cmd.ExecuteReader();
-            while (sql_rdr.Read())
-            {
-                string sIP = (string)sql_rdr["RemoteIP"];
-                string sP = (string)sql_rdr["Process"];
-                int iUT = Convert.ToInt32(sql_rdr["User"]);
-                ulong uTI = Convert.ToUInt64(sql_rdr["Time"]);
-                lProcessUsages.Add(new PROCESS_USAGE_IP(sIP, sP, iUT, uTI));
-                Application.DoEvents();
-            }
-            sql_rdr.Close();
-
-            //### get all distinct times
-            List<ulong> lTimes = new List<ulong>();
-            if(strIP!="")
-                sql_cmd.CommandText = "Select DISTINCT Time from processes WHERE [RemoteIP]='" + strIP + "' order by Time";
-            else
-                sql_cmd.CommandText = "Select DISTINCT Time from processes order by Time";
-
-            sql_rdr = sql_cmd.ExecuteReader();
-            while (sql_rdr.Read())
-            {
-                lTimes.Add(Convert.ToUInt64(sql_rdr["Time"]));
-                Application.DoEvents();
-            }
-            sql_rdr.Close();
-
-            string sUpdateCommand = "";
-            //### file the new ProcUsage table
-            SQLiteTransaction tr = sql_con.BeginTransaction();
-            //sql_cmd.CommandText = "insert into [ProcUsage]  (Time, [device.exe]) SELECT Time, User from [Processes] WHERE Time=631771077815940000 AND Process='device.exe';";
-            //lCnt = sql_cmd.ExecuteNonQuery();
-            foreach (ulong uTime in lTimes)
-            {
-                System.Diagnostics.Debug.WriteLine("Updating for Time=" + uTime.ToString());
-                //insert an empty row
-                sql_cmd.CommandText = "Insert Into ProcUsage (RemoteIP, Time) VALUES('0.0.0.0', " + uTime.ToString() + ");";
-                lCnt = sql_cmd.ExecuteNonQuery();
-                foreach (string sPro in lProcesses)
-                {
-                    Application.DoEvents();
-
-                    //is there already a line?
-                    //lCnt = executeNonQuery("Select Time " + "From ProcUsage Where Time="+uTime.ToString());
-
-                    // http://stackoverflow.com/questions/4495698/c-sharp-using-listt-find-with-custom-objects
-                    PROCESS_USAGE_IP pu = lProcessUsages.Find(x => x.procname == sPro && x.timestamp == uTime);
-                    if (pu != null)
-                    {
-                        System.Diagnostics.Debug.WriteLine("\tUpdating User="+ pu.user +" for Process=" + sPro);
-                        //update values
-                        sUpdateCommand = "Update [ProcUsage] SET " +
-                            "[" + sPro + "]=" + pu.user +
-                            ", [RemoteIP]='" + pu.sRemoteIP + "'" + 
-                            //"(SELECT User from [Processes]
-                            " WHERE Time=" + uTime.ToString() + //" AND Process=" + "'" + sPro + "'"+
-                            ";";
-                        sql_cmd.CommandText = sUpdateCommand;
-                        //System.Diagnostics.Debug.WriteLine(sUpdateCommand);
-                        try
-                        {
-                            lCnt = sql_cmd.ExecuteNonQuery();
-                        }
-                        catch (SQLiteException ex) {
-                            System.Diagnostics.Debug.WriteLine("export2CSV2()-SQLiteException: " + ex.Message + " for " + sUpdateCommand);
-                        }
-                        catch (Exception ex) { 
-                            System.Diagnostics.Debug.WriteLine("export2CSV2()-Exception: " + ex.Message + " for " + sUpdateCommand); 
-                        }
-                        //lCnt = executeNonQuery(sInsertCommand);
-                        //"insert into [ProcUsage]  (Time, [device.exe]) SELECT Time, User from [Processes] WHERE Time=631771077815940000 AND Process='device.exe';"
-                    }
-                }
-            }
-            tr.Commit();
-
-            lCnt = 0;
-            SQLiteDataReader rdr = null;
-            System.IO.StreamWriter sw = null;
-            try
-            {
-                sw = new System.IO.StreamWriter(sFileCSV);
-                //sw.WriteLine("RemoteIP;" + strIP);
-                string sFields = "";
-                List<string> lFields = new List<string>();
-                lFields.Add("RemoteIP");
-                lFields.Add("Time");
-                lFields.AddRange(lProcesses);
-                foreach (string ft in lFields)
-                {
-                    sFields += ("'" + ft + "'" + ";");
-                }
-                sFields.TrimEnd(new char[] { ';' });
-                sw.Write(sFields + "\r\n");
-
-                sql_cmd.CommandText = "Select * from ProcUsage;";
-                rdr = sql_cmd.ExecuteReader(CommandBehavior.CloseConnection);
-                while (rdr.Read())
-                {
-                    Application.DoEvents();
-                    lCnt++;
-                    sFields = "";
-                    //Console.WriteLine(rdr["ProcID"] + " " + rdr["User"]);
-                    foreach (string ft in lFields)
-                    {
-                        sFields += rdr[ft] + ";";
-                    }
-                    sFields.TrimEnd(new char[] { ';' });
-                    sw.Write(sFields + "\r\n");
-                    sw.Flush();
-                }
-            }
-            catch (Exception) { }
-            finally
-            {
-                sw.Close();
-                rdr.Close();
-            }
-
-            return 0;
-        }
         #endregion
 
         private void dropTables()
@@ -577,6 +418,7 @@ namespace DataAccessVM
                 "[Name] TEXT NOT NULL, " +
                 "[MemUsage] INTEGER NOT NULL, " +
                 "[Slot] INTEGER NOT NULL, " +
+                "[ProcID] INTEGER NOT NULL, " +
                 "[Time] INTEGER NOT NULL, " +
                 "[idx] INTEGER PRIMARY KEY AUTOINCREMENT " +
                 ")";
@@ -625,6 +467,7 @@ namespace DataAccessVM
             FieldsProcessValues.Append("'" + procVMStats.name.ToString()+"', ");
             FieldsProcessValues.Append("'" + procVMStats.memusage.ToString() + "', ");
             FieldsProcessValues.Append("'" + procVMStats.slot.ToString() + "', ");
+            FieldsProcessValues.Append(procVMStats.procID.ToString() + ", ");
             FieldsProcessValues.Append(procVMStats.Time.ToString() + ", ");
             FieldsProcessValues.Append("NULL");    //add an idx although it is autoincrement
 

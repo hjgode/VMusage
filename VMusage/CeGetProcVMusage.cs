@@ -11,38 +11,68 @@ namespace VMusage
 {
     class CeGetProcVMusage
     {
-
-        private string[] processNames;
-        public string[] _processNames
+        public class processInfo
         {
-            get {
-                getProcVM();
-                return processNames; 
+            public string pName = "";
+            public UInt32 pID = 0;
+            public
+            processInfo(string name, UInt32 procID)
+            {
+                pName = name;
+                pID = procID;
             }
         }
 
+        //private List<processInfo> processInfos;
+        //public List<processInfo> _processInfos
+        //{
+        //    get {
+        //        getProcVM();
+        //        return processInfos; }
+        //}
+
+        private processInfo[] processInfoArray;
+
+        //private string[] processNames;
+        //public string[] _processNames
+        //{
+        //    get {
+        //        getProcVM();
+        //        return processNames; 
+        //    }
+        //}
+        //private UInt32[] processIDs;
+        //public UInt32[] _processIDs
+        //{
+        //    get
+        //    {
+        //        return processIDs;
+        //    }
+        //}
         public List<procVMinfo> _procVMinfo{
             get
             {
                 procVMinfoList.Clear();
-                procVMinfoList = new List<procVMinfo>();
+                //procVMinfoList = new List<procVMinfo>();
                 getProcVM();
                 return procVMinfoList;
             }
         }
         List<procVMinfo> procVMinfoList;
+
         /// <summary>
         /// contructor
         /// </summary>
         public CeGetProcVMusage(){
-            processNames = new string[32];
+            //processNames = new string[32];
+            processInfoArray = new processInfo[32];
             procVMinfoList = new List<procVMinfo>();
+            //processInfos = new List<processInfo>();
             getProcVM();
         }
 
         void getProcessNames()
-        {
-            
+        {            
 	        IntPtr hProcessSnap;
 	        IntPtr hProcess;
 	        Process.PROCESSENTRY32 pe32=new Process.PROCESSENTRY32();
@@ -53,10 +83,14 @@ namespace VMusage
 
 	        for(slot=STARTBAR;slot<STARTBAR+NUMBARS;slot++)
 	        {
-		        processNames[slot-STARTBAR] = String.Format("Slot {0}: empty", slot);
+                processInfoArray[slot - STARTBAR].pName = String.Format("Slot {0}: empty", slot);
+                //processNames[slot-STARTBAR] = String.Format("Slot {0}: empty", slot);
 	        }
-	        if((1-STARTBAR)>=0)
-		        processNames[1-STARTBAR]=String.Format("ROM DLLs");// "Slot 1: ROM DLLs");
+            if ((1 - STARTBAR) >= 0)
+            {
+                //processNames[1 - STARTBAR] = String.Format("ROM DLLs");// "Slot 1: ROM DLLs");
+                processInfoArray[1 - STARTBAR].pName = String.Format("ROM DLLs");
+            }
 
 	        // Take a snapshot of all processes in the system.
             uint oldPermissions = Process.SetProcPermissions(0xffffffff);
@@ -75,7 +109,10 @@ namespace VMusage
                             if (slot - STARTBAR < NUMBARS)
                             {
                                 //processNames[slot - STARTBAR] = String.Format("Slot {0}: {1}", slot, pe32.szExeFile);
-                                processNames[slot - STARTBAR] = String.Format("{0}", pe32.szExeFile);
+                                //processNames[slot - STARTBAR] = String.Format("{0}", pe32.szExeFile);
+                                processInfoArray[slot - STARTBAR].pName = String.Format("{0}", pe32.szExeFile);
+                                //processIDs[slot - STARTBAR] = pe32.th32ProcessID;
+                                processInfoArray[slot - STARTBAR].pID = pe32.th32ProcessID;
                             }
 
                             Process.CloseHandle(hProcess);
@@ -93,10 +130,12 @@ namespace VMusage
         StringBuilder getProcVM(){
 	        StringBuilder str=new StringBuilder(1024);
 	        for (int i=0; i<32; i++){
-		        processNames[i]="";
+		        //processNames[i]="";
+                processInfoArray[i] = new processInfo("", 0);
 	        }
-	        getProcessNames();
-            procVMinfoList.Clear();
+            getProcessNames();  //fills process Names and process IDs into processInfoArray
+            //_processInfos.Clear();
+            //procVMinfoList.Clear();
 
 	        StringBuilder tempStr=new StringBuilder();
 	        uint total = 0;
@@ -111,10 +150,13 @@ namespace VMusage
 		        if( Process.CeGetProcVMInfo( idx, cbSize, ref vmi ) !=0 )
 		        {
 			        //wsprintf(tempStr, L"%d: %d bytes\r\n", idx, vmi.cbRwMemUsed );
-			        str.Append( String.Format("%d (%s): %d bytes\r\n", idx, processNames[idx-1], vmi.cbRwMemUsed ));
-			        System.Diagnostics.Debug.WriteLine( String.Format("\r\n{0} ({1}): {2} bytes", idx, processNames[idx-1], vmi.cbRwMemUsed ));
+			        //str.Append( String.Format("%d (%s): %d bytes\r\n", idx, processNames[idx-1], vmi.cbRwMemUsed ));
+                    str.Append(String.Format("%d (%s): %d bytes\r\n", idx, processInfoArray[idx - 1].pName, vmi.cbRwMemUsed));
+			        //System.Diagnostics.Debug.WriteLine( String.Format("\r\n{0} ({1}): {2} bytes", idx, processNames[idx-1], vmi.cbRwMemUsed ));
+                    System.Diagnostics.Debug.WriteLine(String.Format("\r\n{0} ({1}): {2} bytes", idx, processInfoArray[idx - 1].pName, vmi.cbRwMemUsed));
 			        total += vmi.cbRwMemUsed;
-                    procVMinfoList.Add(new procVMinfo(processNames[idx - 1], vmi.cbRwMemUsed, (byte)(idx)));
+                    //procVMinfoList.Add(new procVMinfo(processNames[idx - 1], vmi.cbRwMemUsed, (byte)(idx)));
+                    procVMinfoList.Add(new procVMinfo(processInfoArray[idx - 1].pName, processInfoArray[idx - 1].pID, vmi.cbRwMemUsed, (byte)idx));
 		        }
 	        }
 	        str.Append(String.Format("Total: {0} bytes\r\n", total ));

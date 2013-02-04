@@ -54,6 +54,7 @@ namespace VMusageRecvr
         {
             addLog(data.ToString());
         }
+
         void recvr_onEndOfTransfer(object sender, EventArgs e)
         {
             System.Diagnostics.Debug.WriteLine("<EOT>");
@@ -99,6 +100,8 @@ namespace VMusageRecvr
         }
         public void myDispose()
         {
+            dataAccess.Dispose();
+
             recvr.onUpdate -= recvr_onUpdate;
             recvr.StopReceive();
             recvr.Dispose();
@@ -186,6 +189,30 @@ namespace VMusageRecvr
             myDispose();
             System.Threading.Thread.Sleep(1000);
             Application.Exit();
+        }
+
+        private void mnuExport2CSV_Click(object sender, EventArgs e)
+        {
+            bAllowGUIupdate = false;
+
+            SaveFileDialog sfd = new SaveFileDialog();
+            sfd.CheckPathExists = true;
+            sfd.DefaultExt = "csv";
+            sfd.AddExtension = true;
+            sfd.Filter = "CSV|*.csv|All|*.*";
+            sfd.FilterIndex = 0;
+            sfd.InitialDirectory = Environment.CurrentDirectory;
+            sfd.OverwritePrompt = true;
+            sfd.RestoreDirectory = true;
+            sfd.ValidateNames = true;
+
+            if (sfd.ShowDialog() == DialogResult.OK)
+            {
+                dataAccess.ExportMemUsage2CSV(sfd.FileName);
+                //DataAccess da = new DataAccess();
+                //da.export2CSV2(sfd.FileName, sIP);
+            }
+            bAllowGUIupdate = true;
         }
     }
 }
