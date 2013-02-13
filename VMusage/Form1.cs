@@ -154,6 +154,8 @@ namespace VMusage
 
         private void Form1_Closing(object sender, CancelEventArgs e)
         {
+            if (MessageBox.Show("Exit?", "VMusage", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2) == DialogResult.No)
+                return;
             vmiThread.Dispose();
             System.Threading.Thread.Sleep(500);
         }

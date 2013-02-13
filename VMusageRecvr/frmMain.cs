@@ -45,6 +45,7 @@ namespace VMusageRecvr
             
             recvr = new RecvBroadcst();
             recvr.onUpdate += new RecvBroadcst.delegateUpdate(recvr_onUpdate);
+            recvr.onUpdateBulk += new RecvBroadcst.delegateUpdateBulk(recvr_onUpdateBulk);
             recvr.onEndOfTransfer += new RecvBroadcst.delegateEndOfTransfer(recvr_onEndOfTransfer);
 
             recvr.onUpdateMem += new RecvBroadcst.delegateUpdateMem(recvr_onUpdateMem);
@@ -134,7 +135,6 @@ namespace VMusageRecvr
 
                     dataAccess.addData(vmdata);
 
-
                     //release queue data
                     dataAccess.waitHandle.Set();
 
@@ -144,6 +144,12 @@ namespace VMusageRecvr
                 dataGridView1.Refresh();
                 dataGridView1.ResumeLayout();
             }
+        }
+
+        void recvr_onUpdateBulk(object sender, List<VMusage.procVMinfo> data)
+        {
+            foreach (VMusage.procVMinfo pvmi in data)
+                addData(pvmi);
         }
 
         void recvr_onUpdate(object sender, VMusage.procVMinfo data)
@@ -208,9 +214,11 @@ namespace VMusageRecvr
 
             if (sfd.ShowDialog() == DialogResult.OK)
             {
-                dataAccess.ExportMemUsage2CSV(sfd.FileName);
+                //dataAccess.ExportMemUsage2CSV(sfd.FileName);
+                dataAccess.ExportMemUsage2CSV2(sfd.FileName, "");
                 //DataAccess da = new DataAccess();
                 //da.export2CSV2(sfd.FileName, sIP);
+                MessageBox.Show("Export finished");
             }
             bAllowGUIupdate = true;
         }

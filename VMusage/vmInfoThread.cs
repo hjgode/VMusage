@@ -145,14 +145,28 @@ namespace VMusage
                     List<VMusage.procVMinfo> myList = vmInfo._procVMinfo; //get a list of processes and the VM usage
                     
                     System.Threading.Thread.Sleep(interval);
-
-                    //enqueue itemby item
                     uint _totalMemUse = 0;
+                    long lTimeStamp = DateTime.Now.ToFileTimeUtc();
+
+                    //send all data in one block
+                    List<byte> buffer = new List<byte>();
+                    buffer.AddRange(ByteHelper.LargePacketBytes);
+                    foreach (VMusage.procVMinfo pvmi in myList)
+                    {
+                        pvmi.Time = lTimeStamp;
+                        buffer.AddRange(pvmi.toByte());
+
+                        _totalMemUse += pvmi.memusage;
+                    }                    
+                    procStatsQueueBytes.Enqueue(buffer.ToArray());
+/*
+                    //enqueue item by item
                     foreach(VMusage.procVMinfo pvmi in myList){
+                        pvmi.Time = lTimeStamp;
                         procStatsQueueBytes.Enqueue(pvmi.toByte());
                         _totalMemUse += pvmi.memusage;
                     }
-
+*/
                     onUpdateHandler(new procVMinfoEventArgs(myList, _totalMemUse));
 
                     //send MemoryStatusInfo
@@ -160,8 +174,12 @@ namespace VMusage
                     if (memorystatus.MemoryInfo.GetMemoryStatus(ref mstat))
                     {
                         MemoryInfoHelper memoryInfoStat= new MemoryInfoHelper(mstat);
+                        
+                        System.Diagnostics.Debug.WriteLine(memoryInfoStat.ToString());
+
                         //send header
                         procStatsQueueBytes.Enqueue(ByteHelper.meminfostatusBytes);
+                        //send data
                         procStatsQueueBytes.Enqueue(memoryInfoStat.toByte());
                     }
 

@@ -60,22 +60,22 @@ namespace VMusage
             //jump behind marker
             offset = ByteHelper.meminfostatusBytes.Length;
 
-            mi.memoryLoad = (byte)BitConverter.ToUInt32(buf, offset);
+            mi.memoryLoad = (UInt32)BitConverter.ToUInt32(buf, offset);
             offset += sizeof(System.UInt32);
 
-            mi.totalPhysical = (byte)BitConverter.ToUInt32(buf, offset);
+            mi.totalPhysical = (UInt32)BitConverter.ToUInt32(buf, offset);
             offset +=sizeof(System.UInt32);
-            mi.availPhysical = (byte)BitConverter.ToUInt32(buf, offset);
-            offset +=sizeof(System.UInt32);
-
-            mi.totalPageFile = (byte)BitConverter.ToUInt32(buf, offset);
-            offset +=sizeof(System.UInt32);
-            mi.availPageFile = (byte)BitConverter.ToUInt32(buf, offset);
+            mi.availPhysical = (UInt32)BitConverter.ToUInt32(buf, offset);
             offset +=sizeof(System.UInt32);
 
-            mi.totalVirtual = (byte)BitConverter.ToUInt32(buf, offset);
+            mi.totalPageFile = (UInt32)BitConverter.ToUInt32(buf, offset);
             offset +=sizeof(System.UInt32);
-            mi.availVirtual = (byte)BitConverter.ToUInt32(buf, offset);
+            mi.availPageFile = (UInt32)BitConverter.ToUInt32(buf, offset);
+            offset +=sizeof(System.UInt32);
+
+            mi.totalVirtual = (UInt32)BitConverter.ToUInt32(buf, offset);
+            offset +=sizeof(System.UInt32);
+            mi.availVirtual = (UInt32)BitConverter.ToUInt32(buf, offset);
 
             return mi;
         }

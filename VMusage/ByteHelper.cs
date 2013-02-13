@@ -58,7 +58,7 @@ namespace VMusage
             return bRet;
         }
 
-        static bool isMemInfoStatus(byte[] buf){
+        public static bool isMemInfoStatus(byte[] buf){
             bool bRet = false;
             if (buf.Length != 8)
                 return bRet;
@@ -75,5 +75,29 @@ namespace VMusage
             return bRet;
         }
 
+        const UInt64 magicLargePacket = 0xAAffBBeeCC1100dd;
+        public static byte[] LargePacketBytes{
+            get{
+                return BitConverter.GetBytes(magicLargePacket);
+            }
+        }
+        public static bool isLargePacket(byte[] buf)
+        {
+            bool bRet = false;
+            if (buf.Length < 8)
+                return bRet;
+            try
+            {
+                UInt64 u64 = BitConverter.ToUInt64(buf, 0);
+                if (u64 == magicLargePacket)
+                    bRet = true;
+            }
+            catch (Exception)
+            {
+                bRet = false;
+            }
+            return bRet;
+
+        }
     }
 }

@@ -147,6 +147,7 @@ namespace VMusage
 	        {
 		        Process.PROCVMINFO vmi=new Process.PROCVMINFO();
                 int cbSize=Marshal.SizeOf (typeof(Process.PROCVMINFO) );
+                long lTime = DateTime.Now.ToFileTimeUtc();
 		        if( Process.CeGetProcVMInfo( idx, cbSize, ref vmi ) !=0 )
 		        {
 			        //wsprintf(tempStr, L"%d: %d bytes\r\n", idx, vmi.cbRwMemUsed );
@@ -156,7 +157,7 @@ namespace VMusage
                     System.Diagnostics.Debug.WriteLine(String.Format("\r\n{0} ({1}): {2} bytes", idx, processInfoArray[idx - 1].pName, vmi.cbRwMemUsed));
 			        total += vmi.cbRwMemUsed;
                     //procVMinfoList.Add(new procVMinfo(processNames[idx - 1], vmi.cbRwMemUsed, (byte)(idx)));
-                    procVMinfoList.Add(new procVMinfo(processInfoArray[idx - 1].pName, processInfoArray[idx - 1].pID, vmi.cbRwMemUsed, (byte)idx));
+                    procVMinfoList.Add(new procVMinfo(processInfoArray[idx - 1].pName, processInfoArray[idx - 1].pID, vmi.cbRwMemUsed, (byte)idx, lTime));
 		        }
 	        }
 	        str.Append(String.Format("Total: {0} bytes\r\n", total ));

@@ -111,9 +111,29 @@ class RecvBroadcst:IDisposable
                 {
                     VMusage.MemoryInfoHelper mstat = new VMusage.MemoryInfoHelper();
                     mstat.fromByte(bData);
+                    
+                    //System.Diagnostics.Debug.WriteLine(mstat.ToString());
+
                     updateMem(mstat);
                 }
                 catch (Exception) { }
+            }
+            else if(ByteHelper.isLargePacket(bData)){
+                System.Diagnostics.Debug.WriteLine("isLargePacket");
+                try
+                {
+                    List<procVMinfo> lStats = new List<procVMinfo>();
+                    VMusage.procVMinfo stats = new VMusage.procVMinfo();
+                    lStats = stats.getprocVmList(bData, ((IPEndPoint)(remoteEndPoint)).Address.ToString());
+                    updateStatusBulk(lStats);
+                    //foreach (procVMinfo pvmi in lStats)
+                    //{
+                    //    pvmi.remoteIP = ((IPEndPoint)(remoteEndPoint)).Address.ToString();
+                    //    //System.Diagnostics.Debug.WriteLine( stats.dumpStatistics() );
+                    //}
+                }
+                catch (Exception) { }
+
             }
             else
             {
@@ -123,6 +143,8 @@ class RecvBroadcst:IDisposable
                     VMusage.procVMinfo stats = new VMusage.procVMinfo(bData);
                     stats.remoteIP = ((IPEndPoint)(remoteEndPoint)).Address.ToString();
                     //System.Diagnostics.Debug.WriteLine( stats.dumpStatistics() );
+                    if (stats.Time == 0)
+                        stats.Time = DateTime.Now.ToFileTimeUtc();
                     updateStatus(stats);
                 }
                 catch (Exception) { }
@@ -152,6 +174,16 @@ class RecvBroadcst:IDisposable
         //System.Diagnostics.Debug.WriteLine("updateStatus: " + data.dumpStatistics());
         if (this.onUpdate != null)
             this.onUpdate(this, data);
+    }
+
+    public delegate void delegateUpdateBulk(object sender, List<procVMinfo> data);
+    public event delegateUpdateBulk onUpdateBulk;
+
+    private void updateStatusBulk(List<procVMinfo> data)
+    {
+        //System.Diagnostics.Debug.WriteLine("updateStatus: " + data.dumpStatistics());
+        if (this.onUpdateBulk != null)
+            this.onUpdateBulk(this, data);
     }
 
     public delegate void delegateUpdateMem(object sender, VMusage.MemoryInfoHelper data);

@@ -254,6 +254,198 @@ namespace DataAccessVM
             return iCnt;
         }
 
+        public int ExportMemUsage2CSV2(string sFileCSV, string strIP)
+        {
+            //pause data read thread (socksrv)?
+            sql_cmd = new SQLiteCommand();
+            sql_con = new SQLiteConnection();
+            connectDB();
+            if (sql_con.State != ConnectionState.Open)
+            {
+                sql_con.Close();
+                sql_con.Open();
+            }
+            sql_cmd = sql_con.CreateCommand();
+            int iCnt = 0;
+            sql_cmd.CommandText = "select * from vmUsage";
+            SQLiteDataReader rdr = null;
+
+            //although exporting data in normal format is not to bad
+            //better export by using a different layout
+            // time \ nameX     nameY
+            // 00:00  memuseX   memuseY
+            // 00:01  memuseX   memuseY
+            // ...
+            // so we need a list of unique names excluding 'Slot x: empty' values
+            List<string> lNames=new List<string>();
+            sql_cmd.CommandText = "select distinct [Name] from [VMUsage] where [Name] not like 'Slot %' ORDER BY [Name];";
+            try
+            {
+                rdr = sql_cmd.ExecuteReader(CommandBehavior.CloseConnection);
+                while (rdr.Read())
+                    lNames.Add(rdr["Name"].ToString());
+            }
+            catch (Exception)
+            {
+
+            }
+            finally
+            {
+                rdr.Close();
+            }
+            if (lNames.Count == 0)
+            {
+                goto exit_cvs2;
+            }
+
+
+            //create a table with the names as fields plus a field for the time
+            executeNonQuery("DROP TABLE IF EXISTS [VMusageTEMP];");
+            // Define the SQL Create table statement, IF NOT EXISTS 
+            string createAppUserTableSQL = "CREATE TABLE IF NOT EXISTS [VMusageTEMP] (" +
+                "[Time] INTEGER NOT NULL, ";
+            //add the fields with names
+            foreach (string sFieldName in lNames)
+                createAppUserTableSQL += "[" + sFieldName + "] INTEGER DEFAULT 0, ";
+            //add RemoteIP
+            createAppUserTableSQL += "[RemoteIP] TEXT DEFAULT '', ";
+            //add idx field
+            createAppUserTableSQL += "[idx] INTEGER PRIMARY KEY AUTOINCREMENT )";
+            //create Table
+            executeNonQuery(createAppUserTableSQL);
+            //add index
+            string SqlIndex = "CREATE INDEX [Time] on VMUsage (Name ASC);";
+            executeNonQuery(SqlIndex);
+
+            //### get all distinct times
+            List<ulong> lTimes = new List<ulong>();
+            sql_cmd.CommandText = "Select DISTINCT Time from [VMusage] order by Time;";
+            rdr = sql_cmd.ExecuteReader();
+            while (rdr.Read())
+            {
+                lTimes.Add(Convert.ToUInt64(rdr["Time"]));
+                Application.DoEvents();
+            }
+            rdr.Close();
+
+            //### get all process, memusage data
+            List<MEMORY_USAGE_IP> lMemoryUsages = new List<MEMORY_USAGE_IP>();
+            if (strIP != "")
+                sql_cmd.CommandText = "Select RemoteIP, Name, MemUsage, Time from VMusage WHERE [RemoteIP]='" + strIP + "' order by Time";
+            else
+                sql_cmd.CommandText = "Select RemoteIP, Name, MemUsage, Time from VMusage order by Time";
+
+            rdr = sql_cmd.ExecuteReader();
+            while (rdr.Read())
+            {
+                string sIP = (string)rdr["RemoteIP"];
+                string sName = (string)rdr["Name"];
+                int iMemUsage = Convert.ToInt32(rdr["MemUsage"]);
+                ulong uTI = Convert.ToUInt64(rdr["Time"]);
+                lMemoryUsages.Add(new MEMORY_USAGE_IP(sIP, sName, iMemUsage, uTI));
+                Application.DoEvents();
+            }
+            rdr.Close();
+
+            //now iterate thru all times and get the names and memuse values
+            string sUpdateCommand = "";
+            SQLiteTransaction tr = sql_con.BeginTransaction();
+            //sql_cmd.CommandText = "insert into [ProcUsage]  (Time, [device.exe]) SELECT Time, User from [Processes] WHERE Time=631771077815940000 AND Process='device.exe';";
+            int lCnt = 0;
+            foreach (ulong uTime in lTimes)
+            {
+                System.Diagnostics.Debug.WriteLine("Updating for Time=" + uTime.ToString());
+                //insert an empty row
+                sql_cmd.CommandText = "Insert Into VMUsageTemp (RemoteIP, Time) VALUES('0.0.0.0', " + uTime.ToString() + ");";
+                lCnt = sql_cmd.ExecuteNonQuery();
+                foreach (string sPName in lNames)
+                {
+                    Application.DoEvents();
+
+                    //is there already a line?
+                    //lCnt = executeNonQuery("Select Time " + "From ProcUsage Where Time="+uTime.ToString());
+
+                    // http://stackoverflow.com/questions/4495698/c-sharp-using-listt-find-with-custom-objects
+                    MEMORY_USAGE_IP pm = lMemoryUsages.Find(x => x.procname == sPName && x.timestamp == uTime);
+                    if (pm != null)
+                    {
+                        System.Diagnostics.Debug.WriteLine("\tUpdating Memory=" + pm.memusage + " for Process=" + sPName);
+                        //update values
+                        sUpdateCommand = "Update [VMUsageTemp] SET " +
+                            "[" + sPName + "]=" + pm.memusage +
+                            ", [RemoteIP]='" + pm.sRemoteIP + "'" +
+                            //"(SELECT User from [Processes]
+                            " WHERE Time=" + uTime.ToString() + //" AND Process=" + "'" + sPro + "'"+
+                            ";";
+                        sql_cmd.CommandText = sUpdateCommand;
+                        //System.Diagnostics.Debug.WriteLine(sUpdateCommand);
+                        try
+                        {
+                            lCnt = sql_cmd.ExecuteNonQuery();
+                        }
+                        catch (SQLiteException ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine("export2CSV2()-SQLiteException: " + ex.Message + " for " + sUpdateCommand);
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine("export2CSV2()-Exception: " + ex.Message + " for " + sUpdateCommand);
+                        }
+                        //lCnt = executeNonQuery(sInsertCommand);
+                        //"insert into [ProcUsage]  (Time, [device.exe]) SELECT Time, User from [Processes] WHERE Time=631771077815940000 AND Process='device.exe';"
+                    }
+                }
+            }
+            tr.Commit();
+
+            //export the table to CSV
+            lCnt = 0;
+            rdr = null;
+            System.IO.StreamWriter sw = null;
+            try
+            {
+                sw = new System.IO.StreamWriter(sFileCSV);
+                //sw.WriteLine("RemoteIP;" + strIP);
+                string sFields = "";
+                List<string> lFields = new List<string>();
+                lFields.Add("RemoteIP");
+                lFields.Add("Time");
+                lFields.AddRange(lNames);
+                foreach (string ft in lFields)
+                {
+                    sFields += ("'" + ft + "'" + ";");
+                }
+                sFields.TrimEnd(new char[] { ';' });
+                sw.Write(sFields + "\r\n");
+
+                sql_cmd.CommandText = "Select * from VMUsageTemp;";
+                rdr = sql_cmd.ExecuteReader(CommandBehavior.CloseConnection);
+                while (rdr.Read())
+                {
+                    Application.DoEvents();
+                    lCnt++;
+                    sFields = "";
+                    //Console.WriteLine(rdr["ProcID"] + " " + rdr["User"]);
+                    foreach (string ft in lFields)
+                    {
+                        sFields += rdr[ft] + ";";
+                    }
+                    sFields.TrimEnd(new char[] { ';' });
+                    sw.Write(sFields + "\r\n");
+                    sw.Flush();
+                }
+            }
+            catch (Exception) { }
+            finally
+            {
+                sw.Close();
+                rdr.Close();
+            }
+exit_cvs2:
+            sql_con.Close();
+            return iCnt;
+        }
+
         public int ExportThreads2CSV(string sFileCSV)
         {
             //pause data read thread (socksrv)?
@@ -341,6 +533,20 @@ namespace DataAccessVM
         }
 
         #region Transform
+        class MEMORY_USAGE_IP
+        {
+            public string sRemoteIP;
+            public string procname;
+            public int memusage;
+            public UInt64 timestamp;
+            public MEMORY_USAGE_IP(string sIP, string sProcname, int iMemusage, UInt64 iTimeStamp)
+            {
+                sRemoteIP = sIP;
+                procname = sProcname;
+                memusage = iMemusage;
+                timestamp = iTimeStamp;
+            }
+        }
         class PROCESS_USAGE
         {
             public string procname;
@@ -569,8 +775,16 @@ namespace DataAccessVM
             dsVMUsage.AcceptChanges();
 
             this._dataGrid.DataSource = bsVMUsage;
+            this._dataGrid.ReadOnly = true;
+            this._dataGrid.AllowUserToAddRows = false;
+            this._dataGrid.AllowUserToDeleteRows = false;
+            
+            //show the timestamp with seconds
+            this._dataGrid.Columns["Time"].DefaultCellStyle.Format = "HH:mm:ss";
+
             this._dataGrid.Refresh();
         }
+        
         private void ExecuteQuery(string txtQuery)
         {
             connectDB();
