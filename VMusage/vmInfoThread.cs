@@ -160,7 +160,9 @@ namespace VMusage
                         buffer.AddRange(pvmi.toByte());
 
                         _totalMemUse += pvmi.memusage;
-                        _fileLogger.addLog(pvmi.ToString());
+
+                        if(!pvmi.name.StartsWith("Slot",StringComparison.InvariantCultureIgnoreCase))
+                            _fileLogger.addLog(pvmi.ToString());
                     }                    
                     procStatsQueueBytes.Enqueue(buffer.ToArray());
 /*
