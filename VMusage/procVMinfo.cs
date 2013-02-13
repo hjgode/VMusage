@@ -48,7 +48,12 @@ namespace VMusage
         }
         public override string ToString()
         {
-            return slot.ToString() + ":" + name + ": 0x" + procID.ToString("x") + ": " + memusage.ToString() + " bytes";
+            return
+                slot.ToString() + "\t"
+                + name + "\t 0x" +
+                procID.ToString("x") + "\t" +
+                memusage.ToString() + " bytes\t" +
+                remoteIP;
         }
         public byte[] toByte()
         {

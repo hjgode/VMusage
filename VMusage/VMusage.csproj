@@ -58,6 +58,7 @@
   <ItemGroup>
     <Compile Include="ByteHelper.cs" />
     <Compile Include="CeGetProcVMusage.cs" />
+    <Compile Include="fileLogger.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>

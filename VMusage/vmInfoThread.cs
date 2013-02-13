@@ -14,6 +14,7 @@ namespace VMusage
 {
     public class vmInfoThread:IDisposable
     {
+        Logging.fileLogger _fileLogger;
         /// <summary>
         /// handle to release capture
         /// </summary>
@@ -43,6 +44,8 @@ namespace VMusage
 
         public vmInfoThread()
         {
+            _fileLogger = new Logging.fileLogger(Logging.utils.appPath + "vmusage.log.txt");
+
             eventEnableCapture = new AutoResetEvent(true);
             eventEnableSend = new AutoResetEvent(false);
 
@@ -157,6 +160,7 @@ namespace VMusage
                         buffer.AddRange(pvmi.toByte());
 
                         _totalMemUse += pvmi.memusage;
+                        _fileLogger.addLog(pvmi.ToString());
                     }                    
                     procStatsQueueBytes.Enqueue(buffer.ToArray());
 /*
