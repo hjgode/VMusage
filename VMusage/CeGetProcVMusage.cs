@@ -81,6 +81,10 @@ namespace VMusage
 	        uint STARTBAR=1;
 	        uint NUMBARS=32;
 
+            //slot0 = active app, do NOT USE
+            //slot1 = ROM DLLs
+            //slot2 = filesys.exe
+            //slot3 = device.exe
 	        for(slot=STARTBAR;slot<STARTBAR+NUMBARS;slot++)
 	        {
                 processInfoArray[slot - STARTBAR].pName = String.Format("Slot {0}: empty", slot);
@@ -105,14 +109,21 @@ namespace VMusage
                         hProcess = Process.OpenProcess(Process.ProcessAccessFlags.QueryInformation, false, (int)(pe32.th32ProcessID));
                         if (hProcess != IntPtr.Zero)
                         {
-                            slot = pe32.th32MemoryBase / 0x02000000;
-                            if (slot - STARTBAR < NUMBARS)
+                            slot = pe32.th32MemoryBase / 0x02000000; //32MB slots, 1st = 32mb/32MB=1
+                            System.Diagnostics.Debug.WriteLine("th32MemoryBase=" + pe32.th32MemoryBase.ToString() + "\tslot=" + slot.ToString()+
+                                "\tname='"+pe32.szExeFile+"'");
+                            //if (slot - STARTBAR < NUMBARS)
+                            if (slot < NUMBARS)
                             {
-                                //processNames[slot - STARTBAR] = String.Format("Slot {0}: {1}", slot, pe32.szExeFile);
-                                //processNames[slot - STARTBAR] = String.Format("{0}", pe32.szExeFile);
                                 processInfoArray[slot - STARTBAR].pName = String.Format("{0}", pe32.szExeFile);
-                                //processIDs[slot - STARTBAR] = pe32.th32ProcessID;
+                                // processInfoArray[slot].pName = String.Format("{0}", pe32.szExeFile);
                                 processInfoArray[slot - STARTBAR].pID = pe32.th32ProcessID;
+                                // processInfoArray[slot].pID = pe32.th32ProcessID;
+                            }
+                            else //NK.exe and ROM DLLs assigned to slot 1
+                            {
+                                processInfoArray[1].pName = String.Format("{0}", pe32.szExeFile);
+                                processInfoArray[1].pID = pe32.th32ProcessID;
                             }
 
                             Process.CloseHandle(hProcess);
@@ -148,20 +159,22 @@ namespace VMusage
 		        Process.PROCVMINFO vmi=new Process.PROCVMINFO();
                 int cbSize=Marshal.SizeOf (typeof(Process.PROCVMINFO) );
                 long lTime = DateTime.Now.ToFileTimeUtc();
-		        if( Process.CeGetProcVMInfo( idx, cbSize, ref vmi ) !=0 )
+		        if( Process.CeGetProcVMInfo( idx-1, cbSize, ref vmi ) !=0 )
 		        {
 			        //wsprintf(tempStr, L"%d: %d bytes\r\n", idx, vmi.cbRwMemUsed );
 			        //str.Append( String.Format("%d (%s): %d bytes\r\n", idx, processNames[idx-1], vmi.cbRwMemUsed ));
                     str.Append(String.Format("%d (%s): %d bytes\r\n", idx, processInfoArray[idx - 1].pName, vmi.cbRwMemUsed));
 			        //System.Diagnostics.Debug.WriteLine( String.Format("\r\n{0} ({1}): {2} bytes", idx, processNames[idx-1], vmi.cbRwMemUsed ));
-                    System.Diagnostics.Debug.WriteLine(String.Format("\r\n{0} ({1}): {2} bytes", idx, processInfoArray[idx - 1].pName, vmi.cbRwMemUsed));
-			        total += vmi.cbRwMemUsed;
+                    
+                    //System.Diagnostics.Debug.WriteLine(String.Format("\r\n{0} ({1}): {2} bytes", idx, processInfoArray[idx - 1].pName, vmi.cbRwMemUsed));
+			        
+                    total += vmi.cbRwMemUsed;
                     //procVMinfoList.Add(new procVMinfo(processNames[idx - 1], vmi.cbRwMemUsed, (byte)(idx)));
                     procVMinfoList.Add(new procVMinfo(processInfoArray[idx - 1].pName, processInfoArray[idx - 1].pID, vmi.cbRwMemUsed, (byte)idx, lTime));
 		        }
 	        }
 	        str.Append(String.Format("Total: {0} bytes\r\n", total ));
-            System.Diagnostics.Debug.WriteLine( String.Format("Total: {0} bytes\r\n", total ));
+            //System.Diagnostics.Debug.WriteLine( String.Format("Total: {0} bytes\r\n", total ));
 	        return str;
         }
     }
