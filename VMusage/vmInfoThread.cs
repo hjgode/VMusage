@@ -194,8 +194,12 @@ namespace VMusage
                         procStatsQueueBytes.Enqueue(memoryInfoStat.toByte());
 
                         //log global memstatus
-                        sbLogInfo.Append("total\t" + memoryInfoStat.totalPhysical.ToString() +
-                            "\tfree\t" + memoryInfoStat.availPhysical.ToString() + "\tload\t" + memoryInfoStat.memoryLoad + "\t");
+                        sbLogInfo.Append(
+                            "total\t" + memoryInfoStat.totalPhysical.ToString() +
+                            "\tfree\t" + memoryInfoStat.availPhysical.ToString() +
+                            "\tvtotal\t" + memoryInfoStat.totalVirtual.ToString() +
+                            "tvfree\t" + memoryInfoStat.availVirtual.ToString() +
+                            "\tload\t" + memoryInfoStat.memoryLoad + "\t");
                     }
 
                     //write a log line
