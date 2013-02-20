@@ -159,7 +159,12 @@ namespace VMusage
 		        Process.PROCVMINFO vmi=new Process.PROCVMINFO();
                 int cbSize=Marshal.SizeOf (typeof(Process.PROCVMINFO) );
                 long lTime = DateTime.Now.ToFileTimeUtc();
-		        if( Process.CeGetProcVMInfo( idx-1, cbSize, ref vmi ) !=0 )
+                int iPID = idx-1;
+                if (iPID == 0)
+                {
+                    iPID = Process.GetProcessIDFromIndex(0);
+                }
+		        if( Process.CeGetProcVMInfo( iPID, cbSize, ref vmi ) !=0 )
 		        {
 			        //wsprintf(tempStr, L"%d: %d bytes\r\n", idx, vmi.cbRwMemUsed );
 			        //str.Append( String.Format("%d (%s): %d bytes\r\n", idx, processNames[idx-1], vmi.cbRwMemUsed ));

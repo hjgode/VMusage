@@ -261,5 +261,20 @@ typedef struct tagPROCESSENTRY32 {
             return cbSize;
 
         }
+        /// <summary>
+        /// get the Process ID for process idx
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [DllImport("coredll.dll", SetLastError = true)]
+        public static extern int GetProcessIDFromIndex(int id);
+
+        /// <summary>
+        /// get the idx of a process handle (ID)
+        /// </summary>
+        /// <param name="hProc"></param>
+        /// <returns></returns>
+        [DllImport("coredll.dll", SetLastError = true)]
+        public static extern UInt32 GetProcessIndexFromID(int hProc);
     }
 }
