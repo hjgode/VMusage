@@ -146,7 +146,8 @@ namespace VMusage
                 {
                     eventEnableCapture.WaitOne();
                     List<VMusage.procVMinfo> myList = vmInfo._procVMinfo; //get a list of processes and the VM usage
-                    
+                    StringBuilder sbLogInfo = new StringBuilder();  //needed to merge infos for log
+
                     System.Threading.Thread.Sleep(interval);
                     uint _totalMemUse = 0;
                     long lTimeStamp = DateTime.Now.ToFileTimeUtc();
@@ -161,10 +162,14 @@ namespace VMusage
 
                         _totalMemUse += pvmi.memusage;
 
-                        if(!pvmi.name.StartsWith("Slot",StringComparison.InvariantCultureIgnoreCase))
-                            _fileLogger.addLog(pvmi.ToString());
+                        if (!pvmi.name.StartsWith("Slot", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            //_fileLogger.addLog(pvmi.ToString());    //adds one row for each VM info
+                            sbLogInfo.Append(pvmi.name + "\t" + pvmi.memusage.ToString() + "\t");
+                        }
                     }                    
                     procStatsQueueBytes.Enqueue(buffer.ToArray());
+
 /*
                     //enqueue item by item
                     foreach(VMusage.procVMinfo pvmi in myList){
@@ -187,7 +192,14 @@ namespace VMusage
                         procStatsQueueBytes.Enqueue(ByteHelper.meminfostatusBytes);
                         //send data
                         procStatsQueueBytes.Enqueue(memoryInfoStat.toByte());
+
+                        //log global memstatus
+                        sbLogInfo.Append("total\t" + memoryInfoStat.totalPhysical.ToString() +
+                            "\tfree\t" + memoryInfoStat.availPhysical.ToString() + "\tload\t" + memoryInfoStat.memoryLoad + "\t");
                     }
+
+                    //write a log line
+                    _fileLogger.addLog(sbLogInfo.ToString()+"\r\n");
 
                     procStatsQueueBytes.Enqueue(ByteHelper.endOfTransferBytes);
                     ((AutoResetEvent)eventEnableSend).Set();
