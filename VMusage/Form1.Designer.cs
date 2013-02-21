@@ -83,7 +83,7 @@
             this.Menu = this.mainMenu1;
             this.MinimizeBox = false;
             this.Name = "Form1";
-            this.Text = "Form1";
+            this.Text = "vmUsage 1.0";
             this.Closing += new System.ComponentModel.CancelEventHandler(this.Form1_Closing);
             this.tabControl1.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);

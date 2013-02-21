@@ -34,15 +34,23 @@ namespace VMusage
             absolute,
             relative,
         }
+
         int _Maximum;
-        public int Maximum { set { _Maximum = value; } get { return _Maximum; } }
+        public int Maximum { 
+            set {
+                _Maximum = value; 
+            } 
+            get { return _Maximum; } 
+        }
         int _Minimum;
         public int Minimum { set { _Minimum = value; } get { return _Minimum; } }
 
         float _value;
         public float @Value
         {
-            set { _value = value / 1000000; }    //scaling is done in MB
+            set { 
+                _value = value / 1000000;
+            }    //scaling is done in MB
             get { return _value; }
         }
         //public Color backgroundColor
@@ -60,6 +68,7 @@ namespace VMusage
 
         protected override void OnPaint(PaintEventArgs e)
         {
+
             //draw the background rectangle
             e.Graphics.FillRectangle(new SolidBrush(BackColor), 0, 0, (int)((float)(this.Width / _Maximum) * _Maximum), this.Height);
             //draw foreground rectangle

@@ -114,9 +114,22 @@ namespace VMusage
                 this.mainPanel.Controls.Add(panels[i]);
             }
 
-            //the amx for all slot panels is 32MB, but bar 0 shows the total values
-            panels[0].Maximum = (int)memorystatus.MemoryInfo.getTotalVirtual()/1000000;
-            panels[0].Value = (int)memorystatus.MemoryInfo.getAvailVirtual();
+            //the max for all slot panels is 32MB, but bar 0 shows the total values
+            //and the max val (493000000) can exceed the panels width (ie 444)
+            int maxWidth = (int)memorystatus.MemoryInfo.getTotalPhys() / 1000000;
+            int scaleFactor = 0;
+            while (maxWidth > panels[0].Width)
+            {  //we need to scale this down or we get 0 result
+                //System.Diagnostics.Debugger.Break();
+                maxWidth = (int)((float)(maxWidth / 10f));
+                scaleFactor++;
+            }
+
+            panels[0].Maximum = maxWidth;
+            if(scaleFactor>0)
+                panels[0].Value = (int)(memorystatus.MemoryInfo.getAvailPhys()/(scaleFactor*10));
+            else
+                panels[0].Value = (int)(memorystatus.MemoryInfo.getAvailPhys());
             panels[0].Text = "total";
             this.mainPanel.Controls.Add(panels[0]);
         }
@@ -156,9 +169,24 @@ namespace VMusage
             memorystatus.MemoryInfo.GlobalMemoryStatus(ref memInfoStatus);
 
             //max is 32!
-            uint uTotal = memInfoStatus.dwTotalVirtual;         //is scaled by 1000000 in updateBar!
-            uint uAvail = memInfoStatus.dwAvailVirtual; //scale by 1000000
-            updateBar(0, "total " + uAvail/1000000 +"/"+ uTotal/1000000, (int)uAvail);
+            uint uTotal = memInfoStatus.dwTotalPhys;         //is scaled by 1000000 in updateBar!
+            uint uAvail = memInfoStatus.dwAvailPhys; //scale by 1000000
+
+            int maxWidth = (int)uTotal / 1000000;
+            int scaleFactor = 0;
+            while (maxWidth > panels[0].Width)
+            {  //we need to scale this down or we get 0 result
+                //System.Diagnostics.Debugger.Break();
+                maxWidth = (int)((float)(maxWidth / 10f));
+                scaleFactor++;
+            }
+            panels[0].Maximum = maxWidth;
+
+            uint newVal = uAvail;
+            if (scaleFactor > 0)
+                newVal = (uint)(uAvail / (scaleFactor * 10));
+
+            updateBar(0, "total " + uAvail / 1000000 + "/" + uTotal / 1000000, (int)newVal);
 
         }
 

@@ -83,6 +83,15 @@ typedef struct _MEMORYSTATUS {
                     tvm = ms.dwTotalPhys;
                 return tvm;
             }
+            public static UInt32 getAvailPhys()
+            {
+                UInt32 tvm = 0;
+                MEMORYSTATUS ms = new MEMORYSTATUS();
+                ms.dwLength = (uint)Marshal.SizeOf(typeof(MEMORYSTATUS));
+                if (GetMemoryStatus(ref ms))
+                    tvm = ms.dwAvailPhys;
+                return tvm;
+            }
             public static UInt32 getTotalVirtual()
             {
                 UInt32 tvm = 0;
