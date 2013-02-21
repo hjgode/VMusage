@@ -13,13 +13,33 @@ namespace VMusage
     {
         vmInfoThread vmiThread;
         List<VMusage.procVMinfo> vmInfos;
+        memorystatus.MemoryInfo.MEMORYSTATUS memInfoStatus;
 
         //panel to hold all memorybars
         Panel mainPanel;
         memorybar2[] panels;
         System.Drawing.Color myGreen = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(192)))), ((int)(((byte)(0)))));
 
-        public Form1()
+        Timer hideMeTimer;
+        public Form1(int iTimeout, bool bHide):this(iTimeout)
+        {
+            if (bHide)
+            {
+                //hide me
+                hideMeTimer = new Timer();
+                hideMeTimer.Interval = 1000;
+                hideMeTimer.Tick += new EventHandler(hideMeTimer_Tick);
+                hideMeTimer.Enabled = true;
+            }
+        }
+
+        void hideMeTimer_Tick(object sender, EventArgs e)
+        {
+            hideMeTimer.Enabled = false;
+            System.Process.Process.Hide(this);
+        }
+
+        public Form1(int iTimeout)
         {
             InitializeComponent();
             mainPanel = new Panel();
@@ -43,9 +63,21 @@ namespace VMusage
                 updateBar((int)vm.slot, vm.name, (int)vm.memusage);
             }
 
+            //memorystatus.MemoryInfo.GlobalMemoryStatus(ref memInfoStatus);
+            //updateBar(0, "total " + memInfoStatus.dwAvailVirtual / 1000000, (int)(memInfoStatus.dwTotalVirtual));
+            updateTotalMemBar();
+
             //start the background tasks
             vmiThread = new vmInfoThread();
+            vmiThread._iTimeOut = iTimeout*1000;
             vmiThread.updateEvent += new vmInfoThread.updateEventHandler(vmiThread_updateEvent);
+            
+        }
+        /// <summary>
+        /// default class uses 3 seconds timeout
+        /// </summary>
+        public Form1():this(3000)
+        {
         }
         void createPanels()
         {
@@ -81,12 +113,21 @@ namespace VMusage
                 total += (int)vmInfoA[idx].memusage;
                 this.mainPanel.Controls.Add(panels[i]);
             }
-            panels[0].Maximum = (int)memorystatus.MemoryInfo.getTotalPhys()/1000000;
-            panels[0].Value = total;
+
+            //the amx for all slot panels is 32MB, but bar 0 shows the total values
+            panels[0].Maximum = (int)memorystatus.MemoryInfo.getTotalVirtual()/1000000;
+            panels[0].Value = (int)memorystatus.MemoryInfo.getAvailVirtual();
             panels[0].Text = "total";
             this.mainPanel.Controls.Add(panels[0]);
         }
         delegate void updateBarDelegate(int idx, string sName, int newValue);
+
+        /// <summary>
+        /// update a bar display
+        /// </summary>
+        /// <param name="idx">which bar to update</param>
+        /// <param name="sName">text to display</param>
+        /// <param name="newValue">new value (divided by 1000000! for MB)</param>
         void updateBar(int idx, string sName, int newValue)
         {
             if (this.InvokeRequired)
@@ -109,18 +150,46 @@ namespace VMusage
                 panels[idx].Refresh();
             }
         }
+
+        void updateTotalMemBar()
+        {
+            memorystatus.MemoryInfo.GlobalMemoryStatus(ref memInfoStatus);
+
+            //max is 32!
+            uint uTotal = memInfoStatus.dwTotalVirtual;         //is scaled by 1000000 in updateBar!
+            uint uAvail = memInfoStatus.dwAvailVirtual; //scale by 1000000
+            updateBar(0, "total " + uAvail/1000000 +"/"+ uTotal/1000000, (int)uAvail);
+
+        }
+
         void vmiThread_updateEvent(object sender, procVMinfoEventArgs eventArgs)
         {
             StringBuilder sb = new StringBuilder();
+            //keep track of updated panels and clear empty ones!
+            bool[] bBarEmpty = new bool[33];
+            for (int i=0; i < 33; i++)
+                bBarEmpty[i] = true;
             foreach (VMusage.procVMinfo vm in eventArgs.procVMlist)
             {
-                sb.Append (vm.ToString()+"\r\n");
-                updateBar((int)vm.slot, vm.name, (int)vm.memusage);
+                if (!vm.name.EndsWith("empty"))
+                {
+                    sb.Append(vm.ToString() + "\r\n");
+                    updateBar((int)vm.slot, vm.name, (int)vm.memusage);
+                    bBarEmpty[(int)vm.slot] = false;
+                }
+            }
+
+            for (int i = 1; i < 33; i++){   //do not touch bar 0
+                if (bBarEmpty[i])
+                    updateBar(i, "", 0);
             }
             setText(sb.ToString());
-            int mPhys = (int)memorystatus.MemoryInfo.getTotalPhys() / 1000000;
-            setTitle("total=" + eventArgs.totalMemoryInUse.ToString() + "/" + mPhys.ToString());
-            updateBar(0, "total", (int)(eventArgs.totalMemoryInUse / 1000000));
+            
+            updateTotalMemBar();
+
+            //int mPhys = (int)memorystatus.MemoryInfo.getTotalPhys() / 1000000;
+            //setTitle("total=" + eventArgs.totalMemoryInUse.ToString() + "/" + mPhys.ToString());
+            //updateBar(0, "total", (int)(eventArgs.totalMemoryInUse / 1000000));
         }
 
         delegate void setTitleCallback(string text);

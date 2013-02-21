@@ -13,6 +13,16 @@ namespace System.Process
 {
     public partial class Process
     {
+        #region window stuff
+        [DllImport("coredll.dll")]
+        static extern int ShowWindow(IntPtr hWnd, int nCmdShow);
+        public static void Hide(System.Windows.Forms.Form f)
+        {
+            const int SW_MINIMIZED = 6;
+            // Since there is no WindowState.Minimize, we have to P/Invoke ShowWindow
+            ShowWindow(f.Handle, SW_MINIMIZED);
+        }
+        #endregion
         #region process_stuff
         [DllImport("toolhelp.dll", SetLastError = true)]
         public static extern IntPtr CreateToolhelp32Snapshot(SnapshotFlags dwFlags, uint th32ProcessID);
