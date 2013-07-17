@@ -166,28 +166,34 @@ namespace VMusage
 
         void updateTotalMemBar()
         {
-            memorystatus.MemoryInfo.GlobalMemoryStatus(ref memInfoStatus);
-
-            //max is 32!
-            uint uTotal = memInfoStatus.dwTotalPhys;         //is scaled by 1000000 in updateBar!
-            uint uAvail = memInfoStatus.dwAvailPhys; //scale by 1000000
-
-            int maxWidth = (int)uTotal / 1000000;
-            int scaleFactor = 0;
-            while (maxWidth > panels[0].Width)
-            {  //we need to scale this down or we get 0 result
-                //System.Diagnostics.Debugger.Break();
-                maxWidth = (int)((float)(maxWidth / 10f));
-                scaleFactor++;
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action(this.updateTotalMemBar));
             }
-            panels[0].Maximum = maxWidth;
+            else
+            {
+                memorystatus.MemoryInfo.GlobalMemoryStatus(ref memInfoStatus);
 
-            uint newVal = uAvail;
-            if (scaleFactor > 0)
-                newVal = (uint)(uAvail / (scaleFactor * 10));
+                //max is 32!
+                uint uTotal = memInfoStatus.dwTotalPhys;         //is scaled by 1000000 in updateBar!
+                uint uAvail = memInfoStatus.dwAvailPhys; //scale by 1000000
 
-            updateBar(0, "total " + uAvail / 1000000 + "/" + uTotal / 1000000, (int)newVal);
+                int maxWidth = (int)uTotal / 1000000;
+                int scaleFactor = 0;
+                while (maxWidth > panels[0].Width)
+                {  //we need to scale this down or we get 0 result
+                    //System.Diagnostics.Debugger.Break();
+                    maxWidth = (int)((float)(maxWidth / 10f));
+                    scaleFactor++;
+                }
+                panels[0].Maximum = maxWidth;
 
+                uint newVal = uAvail;
+                if (scaleFactor > 0)
+                    newVal = (uint)(uAvail / (scaleFactor * 10));
+
+                updateBar(0, "total " + uAvail / 1000000 + "/" + uTotal / 1000000, (int)newVal);
+            }
         }
 
         void vmiThread_updateEvent(object sender, procVMinfoEventArgs eventArgs)
