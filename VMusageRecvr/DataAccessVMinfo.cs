@@ -240,10 +240,12 @@ namespace DataAccessVM
             catch (SQLiteException ex)
             {
                 System.Diagnostics.Debug.WriteLine("ExportMemUsage2CSV: " + sql_cmd.CommandText + " " + ex.Message);
+                MessageBox.Show("ExportMemUsage2CSV: " + sql_cmd.CommandText + " " + ex.Message);
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine("ExportMemUsage2CSV: " + sql_cmd.CommandText + " " + ex.Message);
+                MessageBox.Show("ExportMemUsage2CSV: " + sql_cmd.CommandText + " " + ex.Message);
             }
             finally
             {
@@ -285,9 +287,9 @@ namespace DataAccessVM
                 while (rdr.Read())
                     lNames.Add(rdr["Name"].ToString());
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
+                MessageBox.Show("Exception in 'select distinct...': " + ex.Message);
             }
             finally
             {
@@ -386,10 +388,12 @@ namespace DataAccessVM
                         catch (SQLiteException ex)
                         {
                             System.Diagnostics.Debug.WriteLine("export2CSV2()-SQLiteException: " + ex.Message + " for " + sUpdateCommand);
+                            MessageBox.Show("export2CSV2()-SQLiteException: " + ex.Message + " for " + sUpdateCommand);
                         }
                         catch (Exception ex)
                         {
                             System.Diagnostics.Debug.WriteLine("export2CSV2()-Exception: " + ex.Message + " for " + sUpdateCommand);
+                            MessageBox.Show("export2CSV2()-Exception: " + ex.Message + " for " + sUpdateCommand);
                         }
                         //lCnt = executeNonQuery(sInsertCommand);
                         //"insert into [ProcUsage]  (Time, [device.exe]) SELECT Time, User from [Processes] WHERE Time=631771077815940000 AND Process='device.exe';"
@@ -435,7 +439,9 @@ namespace DataAccessVM
                     sw.Flush();
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) {
+                MessageBox.Show("Exception in Select * from VMUsageTemp; " + ex.Message);
+            }
             finally
             {
                 sw.Close();

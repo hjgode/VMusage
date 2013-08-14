@@ -215,10 +215,18 @@ namespace VMusageRecvr
             if (sfd.ShowDialog() == DialogResult.OK)
             {
                 //dataAccess.ExportMemUsage2CSV(sfd.FileName);
-                dataAccess.ExportMemUsage2CSV2(sfd.FileName, "");
-                //DataAccess da = new DataAccess();
-                //da.export2CSV2(sfd.FileName, sIP);
-                MessageBox.Show("Export finished");
+                if (MessageBox.Show("That make take a while or two! Continue?", "Export to CSV", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
+                {
+                    Cursor.Current = Cursors.WaitCursor;
+                    Application.DoEvents();
+                    this.Enabled = false;
+                    dataAccess.ExportMemUsage2CSV2(sfd.FileName, "");
+                    Cursor.Current = Cursors.Default;
+                    this.Enabled = false;
+                    //DataAccess da = new DataAccess();
+                    //da.export2CSV2(sfd.FileName, sIP);
+                    MessageBox.Show("Export finished");
+                }
             }
             bAllowGUIupdate = true;
         }
