@@ -9,6 +9,8 @@ using System.Windows.Forms;
 using System.Data;
 using System.Data.SQLite;
 
+using System.IO;
+
 namespace DataAccessVM
 {
     class DataAccess:IDisposable
@@ -254,6 +256,78 @@ namespace DataAccessVM
             
             sql_con.Close();
             return iCnt;
+        }
+
+
+        public int ImportMemUsageFromCSV(string sFileCSV)
+        {
+            int iRet = 0;
+            sql_cmd = new SQLiteCommand();
+            sql_con = new SQLiteConnection();
+            connectDB();
+            if (sql_con.State != ConnectionState.Open)
+            {
+                sql_con.Close();
+                sql_con.Open();
+            }
+            sql_cmd = sql_con.CreateCommand();
+            int iCnt = 0;
+            
+            //open file, split lines and add to database
+            // input line:
+            //05.11.2013 20:42:58		0xffff002	'NK.EXE'	0	0xaffed752	'filesys.exe'	0	0x4ffbaf3a	'device.exe'	5906432	0xaf10758a	'connmgr.exe'	
+            //1. entry = date and time
+            //then three entries for every process
+            // 1. process ID
+            // 2. procfess name
+            // 3. mem usage
+            // the above repeats x times and the last field is the cummulated mem usage in paranthesis, ie (16244736)
+            List<string> lLines = new List<string>();
+            using (TextReader sr = new StreamReader(sFileCSV))
+            {
+                String line;
+                // Read and display lines from the file until the end of 
+                // the file is reached.
+                while ((line = sr.ReadLine()) != null)
+                {
+                    if(line.Length>0)
+                        lLines.Add(line);
+                }
+            }
+            //all lines read into memory
+            string[] aLines = lLines.ToArray();
+            lLines.Clear();
+            createTablesSQL();//will clear all data and create empty table vmUsage
+            for (int i = 0; i < aLines.Length; i++)
+            {
+                //split
+                string[] fields = aLines[i].Split(new char[] { '\t' });
+                //field 0 is datetime
+                string sTime = fields[0];
+                DateTime dt = DateTime.Parse(sTime);
+                long lTime = dt.ToFileTimeUtc();
+                int lCnt = 0;
+                for (int j = 1; j < fields.Length; j += 3)
+                {
+                    //field 1 is procID
+                    int procID = int.Parse(fields[j], System.Globalization.NumberStyles.HexNumber);
+                    string procName = fields[j + 1];
+                    int memUse = int.Parse(fields[j + 2]);
+                    //int slot = 1;
+                    //string remoteIP = "0.0.0.0";
+                    //add data to DB
+                    sql_cmd.CommandText = "Insert Into VMUsage (RemoteIP, Name, MemUsage, Slot, ProcID, Time) "+
+                        "VALUES('0.0.0.0', '" + procName + "', " + memUse.ToString() +", 0, "+ procID.ToString() +", " + lTime.ToString() + ");";
+                    lCnt = sql_cmd.ExecuteNonQuery();
+                }
+                // data is
+                // remoteIP|Name|MemUsage|Slot|ProcID|Time|idx
+
+            }
+            //convert db back to CSV (rotated)
+            ExportMemUsage2CSV2(sFileCSV + "_n.csv", "0.0.0.0");
+
+            return iRet;
         }
 
         public int ExportMemUsage2CSV2(string sFileCSV, string strIP)

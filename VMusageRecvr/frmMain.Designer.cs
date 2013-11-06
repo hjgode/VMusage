@@ -39,6 +39,7 @@
             this.mnuExport2CSV = new System.Windows.Forms.ToolStripMenuItem();
             this.panel1 = new System.Windows.Forms.Panel();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.mnuImport = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.menuStrip1.SuspendLayout();
             this.panel1.SuspendLayout();
@@ -111,7 +112,8 @@
             // 
             this.mnuFile.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.mnuExit,
-            this.mnuExport2CSV});
+            this.mnuExport2CSV,
+            this.mnuImport});
             this.mnuFile.Name = "mnuFile";
             this.mnuFile.Size = new System.Drawing.Size(37, 20);
             this.mnuFile.Text = "File";
@@ -119,14 +121,14 @@
             // mnuExit
             // 
             this.mnuExit.Name = "mnuExit";
-            this.mnuExit.Size = new System.Drawing.Size(131, 22);
+            this.mnuExit.Size = new System.Drawing.Size(152, 22);
             this.mnuExit.Text = "Exit";
             this.mnuExit.Click += new System.EventHandler(this.mnuExit_Click);
             // 
             // mnuExport2CSV
             // 
             this.mnuExport2CSV.Name = "mnuExport2CSV";
-            this.mnuExport2CSV.Size = new System.Drawing.Size(131, 22);
+            this.mnuExport2CSV.Size = new System.Drawing.Size(152, 22);
             this.mnuExport2CSV.Text = "Export CSV";
             this.mnuExport2CSV.Click += new System.EventHandler(this.mnuExport2CSV_Click);
             // 
@@ -157,6 +159,13 @@
             this.splitContainer1.Size = new System.Drawing.Size(1140, 624);
             this.splitContainer1.SplitterDistance = 292;
             this.splitContainer1.TabIndex = 5;
+            // 
+            // mnuImport
+            // 
+            this.mnuImport.Name = "mnuImport";
+            this.mnuImport.Size = new System.Drawing.Size(152, 22);
+            this.mnuImport.Text = "Import CSV";
+            this.mnuImport.Click += new System.EventHandler(this.mnuImport_Click);
             // 
             // frmMain
             // 
@@ -195,6 +204,7 @@
         private System.Windows.Forms.ToolStripMenuItem mnuExport2CSV;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.SplitContainer splitContainer1;
+        private System.Windows.Forms.ToolStripMenuItem mnuImport;
     }
 }
 

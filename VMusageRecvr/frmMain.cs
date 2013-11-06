@@ -222,13 +222,49 @@ namespace VMusageRecvr
                     this.Enabled = false;
                     dataAccess.ExportMemUsage2CSV2(sfd.FileName, "");
                     Cursor.Current = Cursors.Default;
-                    this.Enabled = false;
+                    this.Enabled = true;
                     //DataAccess da = new DataAccess();
                     //da.export2CSV2(sfd.FileName, sIP);
                     MessageBox.Show("Export finished");
                 }
             }
             bAllowGUIupdate = true;
+        }
+
+        private void mnuImport_Click(object sender, EventArgs e)
+        {
+            bAllowGUIupdate = false;
+
+            OpenFileDialog ofd = new OpenFileDialog();
+            ofd.CheckFileExists = true;
+            ofd.CheckPathExists = true;
+            ofd.Filter = "CSV TAB delimitted files (*.csv)|*.csv|Text files (*.txt)|*.txt|All files (*.*)|*.* ";
+            ofd.FilterIndex = 0;
+            ofd.Multiselect = false;
+            ofd.RestoreDirectory = true;
+            ofd.SupportMultiDottedExtensions = true;
+            ofd.Title = "Please open a TAB delimitted CSV file to import";
+            ofd.ValidateNames = true;
+            if (ofd.ShowDialog() != DialogResult.OK)
+            {
+                ofd.Dispose();
+                return;
+            }
+            if (MessageBox.Show("That make take a while or two! Continue?", "Import to CSV", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
+            {
+                Cursor.Current = Cursors.WaitCursor;
+                Application.DoEvents();
+                this.Enabled = false;
+                //dataAccess.ExportMemUsage2CSV2(sfd.FileName, "");
+
+                Cursor.Current = Cursors.Default;
+                this.Enabled = true;
+                //DataAccess da = new DataAccess();
+                //da.export2CSV2(sfd.FileName, sIP);
+                MessageBox.Show("Import finished");
+            }
+            bAllowGUIupdate = true;
+
         }
     }
 }
