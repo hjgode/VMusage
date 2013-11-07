@@ -9,7 +9,7 @@ namespace VMusage
     /// </summary>
     public class procVMinfo
     {
-        public string remoteIP;
+        public string remoteIP="127.0.0.1";
         public string name;
         public UInt32 memusage;
         public byte slot;
@@ -18,15 +18,16 @@ namespace VMusage
 
         public procVMinfo()
         {
-            remoteIP = "0.0.0.0";
+            remoteIP = "127.0.0.1";
             name = "unknown";
             memusage = 0;
             slot = 0;
             procID = 0;
-            Time = DateTime.Now.ToFileTimeUtc();
+            Time = DateTime.Now.Ticks;
         }
         public procVMinfo(string n, UInt32 pID, uint m, byte bSlot)
         {
+            remoteIP = "127.0.0.1";
             name = n;
             memusage = m;
             slot = bSlot;
@@ -35,6 +36,7 @@ namespace VMusage
         }
         public procVMinfo(string n, UInt32 pID, uint m, byte bSlot, long lTime)
         {
+            remoteIP = "127.0.0.1";
             name = n;
             memusage = m;
             slot = bSlot;
