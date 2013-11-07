@@ -10,5 +10,6 @@ struct PROCESSNAMES{
 
 extern PROCESSNAMES ProcessNames[40];
 extern DWORD old_permissions_;
+extern BOOL old_kmode_;
 
 DWORD getVMuse();

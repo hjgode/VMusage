@@ -144,7 +144,7 @@ class RecvBroadcst:IDisposable
                     stats.remoteIP = ((IPEndPoint)(remoteEndPoint)).Address.ToString();
                     //System.Diagnostics.Debug.WriteLine( stats.dumpStatistics() );
                     if (stats.Time == 0)
-                        stats.Time = DateTime.Now.ToFileTimeUtc();
+                        stats.Time = DateTime.Now.Ticks;
                     updateStatus(stats);
                 }
                 catch (Exception) { }

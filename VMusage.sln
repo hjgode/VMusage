@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VMusageRecvr", "VMusageRecv
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "C2DPushGraph", "VMusageRecvr\PushGraph\C2DPushGraph.csproj", "{290BF7F1-91BB-4AE0-A89B-9320EC1B2619}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "memuse", "memuse\memuse.vcproj", "{CABD48A4-5DC6-4D8C-805C-925AE7EEB40C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -93,6 +95,20 @@ Global
 		{290BF7F1-91BB-4AE0-A89B-9320EC1B2619}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{290BF7F1-91BB-4AE0-A89B-9320EC1B2619}.Release|Windows Mobile 5.0 Pocket PC SDK (ARMV4I).ActiveCfg = Release|Any CPU
 		{290BF7F1-91BB-4AE0-A89B-9320EC1B2619}.Release|Windows Mobile 5.0 Smartphone SDK (ARMV4I).ActiveCfg = Release|Any CPU
+		{CABD48A4-5DC6-4D8C-805C-925AE7EEB40C}.Debug|Any CPU.ActiveCfg = Debug|Windows Mobile 5.0 Pocket PC SDK (ARMV4I)
+		{CABD48A4-5DC6-4D8C-805C-925AE7EEB40C}.Debug|Mixed Platforms.ActiveCfg = Debug|Windows Mobile 5.0 Pocket PC SDK (ARMV4I)
+		{CABD48A4-5DC6-4D8C-805C-925AE7EEB40C}.Debug|Windows Mobile 5.0 Pocket PC SDK (ARMV4I).ActiveCfg = Debug|Windows Mobile 5.0 Pocket PC SDK (ARMV4I)
+		{CABD48A4-5DC6-4D8C-805C-925AE7EEB40C}.Debug|Windows Mobile 5.0 Pocket PC SDK (ARMV4I).Build.0 = Debug|Windows Mobile 5.0 Pocket PC SDK (ARMV4I)
+		{CABD48A4-5DC6-4D8C-805C-925AE7EEB40C}.Debug|Windows Mobile 5.0 Pocket PC SDK (ARMV4I).Deploy.0 = Debug|Windows Mobile 5.0 Pocket PC SDK (ARMV4I)
+		{CABD48A4-5DC6-4D8C-805C-925AE7EEB40C}.Debug|Windows Mobile 5.0 Smartphone SDK (ARMV4I).ActiveCfg = Debug|Windows Mobile 5.0 Pocket PC SDK (ARMV4I)
+		{CABD48A4-5DC6-4D8C-805C-925AE7EEB40C}.Release|Any CPU.ActiveCfg = Release|Windows Mobile 5.0 Pocket PC SDK (ARMV4I)
+		{CABD48A4-5DC6-4D8C-805C-925AE7EEB40C}.Release|Mixed Platforms.ActiveCfg = Release|Windows Mobile 5.0 Pocket PC SDK (ARMV4I)
+		{CABD48A4-5DC6-4D8C-805C-925AE7EEB40C}.Release|Mixed Platforms.Build.0 = Release|Windows Mobile 5.0 Pocket PC SDK (ARMV4I)
+		{CABD48A4-5DC6-4D8C-805C-925AE7EEB40C}.Release|Mixed Platforms.Deploy.0 = Release|Windows Mobile 5.0 Pocket PC SDK (ARMV4I)
+		{CABD48A4-5DC6-4D8C-805C-925AE7EEB40C}.Release|Windows Mobile 5.0 Pocket PC SDK (ARMV4I).ActiveCfg = Release|Windows Mobile 5.0 Pocket PC SDK (ARMV4I)
+		{CABD48A4-5DC6-4D8C-805C-925AE7EEB40C}.Release|Windows Mobile 5.0 Pocket PC SDK (ARMV4I).Build.0 = Release|Windows Mobile 5.0 Pocket PC SDK (ARMV4I)
+		{CABD48A4-5DC6-4D8C-805C-925AE7EEB40C}.Release|Windows Mobile 5.0 Pocket PC SDK (ARMV4I).Deploy.0 = Release|Windows Mobile 5.0 Pocket PC SDK (ARMV4I)
+		{CABD48A4-5DC6-4D8C-805C-925AE7EEB40C}.Release|Windows Mobile 5.0 Smartphone SDK (ARMV4I).ActiveCfg = Release|Windows Mobile 5.0 Pocket PC SDK (ARMV4I)
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

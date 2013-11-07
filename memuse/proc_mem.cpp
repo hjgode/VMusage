@@ -11,17 +11,24 @@
 //    } PROCVMINFO, *PPROCVMINFO;
 
 DWORD old_permissions_;
+BOOL  old_kmode_;
+
 struct CosmicPowers
 {
     CosmicPowers()
     {
-        old_permissions_ = SetProcPermissions( 0xFFFFFFFF );
+        m_old_permissions = SetProcPermissions( 0xFFFFFFFF );
+		m_old_kmode = SetKMode(TRUE);
     }
 
     ~CosmicPowers()
     {
-        SetProcPermissions( old_permissions_ );
+        SetProcPermissions( m_old_permissions );
+		SetKMode(m_old_kmode);
     }
+private:
+    DWORD m_old_permissions;
+	BOOL m_old_kmode;
 };
 
 PROCESSNAMES ProcessNames[40];
@@ -39,6 +46,7 @@ DWORD getVMuse(){
 	//	return info.cbRwMemUsed;
 	//else
 	//	return 0;
+	CosmicPowers cosmicPower;
 
 	//build the process list
 	int iMax = GetProcessNameList((PROCESSNAMES*) &ProcessNames);

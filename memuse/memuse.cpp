@@ -352,7 +352,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				wsprintf(szLogFileName, L"\\memusage.log.txt");
 			initFileNames(szLogFileName);
 			//start timer
-			old_permissions_ = SetProcPermissions( 0xFFFFFFFF );
+			//old_kmode_ = SetKMode(TRUE);
+			//old_permissions_ = SetProcPermissions( 0xFFFFFFFF );
 			SetTimer(hWnd, dwTimerID, iTimeInterval, NULL);
             break;
 		case WM_TIMER:
@@ -369,7 +370,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         case WM_DESTROY:
             CommandBar_Destroy(g_hWndMenuBar);
-			old_permissions_ = SetProcPermissions( old_permissions_ );
+			//old_kmode_ = SetKMode(old_kmode_);
+			//old_permissions_ = SetProcPermissions( old_permissions_ );
             PostQuitMessage(0);
             break;
 

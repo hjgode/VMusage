@@ -259,7 +259,7 @@ namespace DataAccessVM
         }
 
 
-        public int ImportMemUsageFromCSV(string sFileCSV)
+        public int ImportMemUsageFromCSV(string sFileCSV, ref List<VMusage.procVMinfo> data)
         {
             int iRet = 0;
             sql_cmd = new SQLiteCommand();
@@ -306,32 +306,36 @@ namespace DataAccessVM
                 aLines[i] = aLines[i].Replace("\t\t", "\t");
                 //split
                 string[] fields = aLines[i].Split(new char[] { '\t' });
-                System.Diagnostics.Debug.WriteLine("line='" + aLines[i] + "'");
-                foreach (string s in fields)
-                    System.Diagnostics.Debug.Write(s + "\t");
-                System.Diagnostics.Debug.WriteLine("");
+                //System.Diagnostics.Debug.WriteLine("line='" + aLines[i] + "'");
+                //foreach (string s in fields)
+                //    System.Diagnostics.Debug.Write(s + "\t");
+                //System.Diagnostics.Debug.WriteLine("");
 
                 if ((fields.Length-2) % 3 == 0) //test for right number of fields
                 {
                     //field 0 is datetime
                     string sTime = fields[0];
                     DateTime dt = DateTime.Parse(sTime);
-                    long lTime = dt.ToFileTimeUtc();
+                    long lTime = dt.Ticks;
                     for (int j = 1; j < fields.Length; j += 3)
                     {
                         try
                         {
                             //field 1 is procID
-                            int procID = int.Parse(fields[j].Replace("0x", ""),
+                            if (fields[j].StartsWith("("))
+                                continue;
+                            uint procID = uint.Parse(fields[j].Replace("0x", ""),
                                 System.Globalization.NumberStyles.HexNumber |
                                 System.Globalization.NumberStyles.AllowLeadingWhite | System.Globalization.NumberStyles.AllowTrailingWhite);
                             string procName = fields[j + 1].Replace("'", "");
-                            int memUse = int.Parse(fields[j + 2]);
+                            uint memUse = uint.Parse(fields[j + 2]);
+                            VMusage.procVMinfo procData = new VMusage.procVMinfo(procName, procID, memUse, 0, lTime);
+                            data.Add(procData);
                             //int slot = 1;
                             //string remoteIP = "0.0.0.0";
                             //add data to DB
                             sql_cmd.CommandText = "Insert Into VMUsage (RemoteIP, Name, MemUsage, Slot, ProcID, Time) " +
-                                "VALUES('0.0.0.0', '" + procName + "', " + memUse.ToString() + ", 0, " + procID.ToString() + ", " + lTime.ToString() + ");";
+                                "VALUES('127.0.0.1', '" + procName + "', " + memUse.ToString() + ", 0, " + procID.ToString() + ", " + lTime.ToString() + ");";
                             lCnt = sql_cmd.ExecuteNonQuery();
                             iRet += lCnt;
                         }
@@ -705,7 +709,7 @@ exit_cvs2:
 
         private void dropTables()
         {
-#if DEBUG1
+#if !DEBUG1
             System.Diagnostics.Debug.WriteLine("DEBUG: dropTables()");
             string dropTable = "DROP TABLE [Processes]";
             executeNonQuery(dropTable);
@@ -894,18 +898,26 @@ exit_cvs2:
             sql_cmd.ExecuteNonQuery();
             sql_con.Close();
         }
-        private void LoadData()
+        public void LoadData()
         {
             connectDB();
-            sql_con.Open();
+            if(sql_con.State!=ConnectionState.Open)
+                sql_con.Open();
             sql_cmd = sql_con.CreateCommand();
-            string CommandText = "select * from VMUsage";
+            string CommandText = "select RemoteIP, Name, MemUsage, Slot, ProcID, datetime((Time - 116444736000000000)/10000000, 'unixepoch')as Time, idx from VMUsage";
             sql_dap = new SQLiteDataAdapter(CommandText, sql_con);
             dsVMUsage.Reset();
             sql_dap.Fill(dsVMUsage);
+            //change datatype from int (long, DateTime.Ticks) to DateTime
+            //dsVMUsage.Tables[0].Columns["Time"].DataType = System.Type.GetType("System.DateTime");
             dtVMUsage = dsVMUsage.Tables[0];
+
             this._dataGrid.DataSource = dtVMUsage;
             sql_con.Close();
+        }
+        public void ClearData()
+        {
+            dtVMUsage.Clear();
         }
     }
 }

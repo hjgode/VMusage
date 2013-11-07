@@ -37,9 +37,11 @@
             this.mnuFile = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuExit = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuExport2CSV = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnuImport = new System.Windows.Forms.ToolStripMenuItem();
             this.panel1 = new System.Windows.Forms.Panel();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-            this.mnuImport = new System.Windows.Forms.ToolStripMenuItem();
+            this.dataToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnuDataLoad = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.menuStrip1.SuspendLayout();
             this.panel1.SuspendLayout();
@@ -101,7 +103,8 @@
             // menuStrip1
             // 
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.mnuFile});
+            this.mnuFile,
+            this.dataToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(1140, 24);
@@ -121,16 +124,23 @@
             // mnuExit
             // 
             this.mnuExit.Name = "mnuExit";
-            this.mnuExit.Size = new System.Drawing.Size(152, 22);
+            this.mnuExit.Size = new System.Drawing.Size(134, 22);
             this.mnuExit.Text = "Exit";
             this.mnuExit.Click += new System.EventHandler(this.mnuExit_Click);
             // 
             // mnuExport2CSV
             // 
             this.mnuExport2CSV.Name = "mnuExport2CSV";
-            this.mnuExport2CSV.Size = new System.Drawing.Size(152, 22);
+            this.mnuExport2CSV.Size = new System.Drawing.Size(134, 22);
             this.mnuExport2CSV.Text = "Export CSV";
             this.mnuExport2CSV.Click += new System.EventHandler(this.mnuExport2CSV_Click);
+            // 
+            // mnuImport
+            // 
+            this.mnuImport.Name = "mnuImport";
+            this.mnuImport.Size = new System.Drawing.Size(134, 22);
+            this.mnuImport.Text = "Import CSV";
+            this.mnuImport.Click += new System.EventHandler(this.mnuImport_Click);
             // 
             // panel1
             // 
@@ -160,12 +170,20 @@
             this.splitContainer1.SplitterDistance = 292;
             this.splitContainer1.TabIndex = 5;
             // 
-            // mnuImport
+            // dataToolStripMenuItem
             // 
-            this.mnuImport.Name = "mnuImport";
-            this.mnuImport.Size = new System.Drawing.Size(152, 22);
-            this.mnuImport.Text = "Import CSV";
-            this.mnuImport.Click += new System.EventHandler(this.mnuImport_Click);
+            this.dataToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.mnuDataLoad});
+            this.dataToolStripMenuItem.Name = "dataToolStripMenuItem";
+            this.dataToolStripMenuItem.Size = new System.Drawing.Size(43, 20);
+            this.dataToolStripMenuItem.Text = "Data";
+            // 
+            // mnuDataLoad
+            // 
+            this.mnuDataLoad.Name = "mnuDataLoad";
+            this.mnuDataLoad.Size = new System.Drawing.Size(152, 22);
+            this.mnuDataLoad.Text = "Load";
+            this.mnuDataLoad.Click += new System.EventHandler(this.mnuDataLoad_Click);
             // 
             // frmMain
             // 
@@ -205,6 +223,8 @@
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.SplitContainer splitContainer1;
         private System.Windows.Forms.ToolStripMenuItem mnuImport;
+        private System.Windows.Forms.ToolStripMenuItem dataToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem mnuDataLoad;
     }
 }
 

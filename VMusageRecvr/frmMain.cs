@@ -123,6 +123,7 @@ namespace VMusageRecvr
             }
             else
             {
+                System.Diagnostics.Debug.WriteLine("addData() called");
                 dataGridView1.SuspendLayout();
                 //enqueue data to be saved to sqlite
                 dataQueue.Enqueue(vmdata);
@@ -148,12 +149,14 @@ namespace VMusageRecvr
 
         void recvr_onUpdateBulk(object sender, List<VMusage.procVMinfo> data)
         {
+            System.Diagnostics.Debug.WriteLine("recvr_onUpdateBulk() called");
             foreach (VMusage.procVMinfo pvmi in data)
                 addData(pvmi);
         }
 
         void recvr_onUpdate(object sender, VMusage.procVMinfo data)
         {
+            System.Diagnostics.Debug.WriteLine("recvr_onUpdate() called");
             //string s = data.processID.ToString() + ", " +
             //        data.sName + ", " +
             //        data.procUsage.user.ToString() + ", " +
@@ -250,13 +253,16 @@ namespace VMusageRecvr
                 ofd.Dispose();
                 return;
             }
+            List<VMusage.procVMinfo> data=new List<VMusage.procVMinfo>();
             if (MessageBox.Show("That make take a while or two! Continue?", "Import to CSV", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
             {
                 Cursor.Current = Cursors.WaitCursor;
                 Application.DoEvents();
                 this.Enabled = false;
                 //dataAccess.ExportMemUsage2CSV2(sfd.FileName, "");
-                int iCnt = dataAccess.ImportMemUsageFromCSV(ofd.FileName);
+                int iCnt = dataAccess.ImportMemUsageFromCSV(ofd.FileName, ref data);
+
+                
                 Cursor.Current = Cursors.Default;
                 this.Enabled = true;
                 //DataAccess da = new DataAccess();
@@ -264,7 +270,16 @@ namespace VMusageRecvr
                 MessageBox.Show("Import/Export finished. "+iCnt.ToString() +" lines processed");
             }
             bAllowGUIupdate = true;
+            recvr_onUpdateBulk(this, data);
 
+        }
+
+        private void mnuDataLoad_Click(object sender, EventArgs e)
+        {
+            recvr.StopReceive();
+            dataAccess.ClearData();
+            dataAccess.LoadData();
+            this.dataGridView1.Refresh();
         }
     }
 }
