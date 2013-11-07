@@ -298,35 +298,55 @@ namespace DataAccessVM
             string[] aLines = lLines.ToArray();
             lLines.Clear();
             createTablesSQL();//will clear all data and create empty table vmUsage
+            int lCnt = 0;
             for (int i = 0; i < aLines.Length; i++)
             {
+                Application.DoEvents();
+                //cleanup
+                aLines[i] = aLines[i].Replace("\t\t", "\t");
                 //split
                 string[] fields = aLines[i].Split(new char[] { '\t' });
-                //field 0 is datetime
-                string sTime = fields[0];
-                DateTime dt = DateTime.Parse(sTime);
-                long lTime = dt.ToFileTimeUtc();
-                int lCnt = 0;
-                for (int j = 1; j < fields.Length; j += 3)
-                {
-                    //field 1 is procID
-                    int procID = int.Parse(fields[j], System.Globalization.NumberStyles.HexNumber);
-                    string procName = fields[j + 1];
-                    int memUse = int.Parse(fields[j + 2]);
-                    //int slot = 1;
-                    //string remoteIP = "0.0.0.0";
-                    //add data to DB
-                    sql_cmd.CommandText = "Insert Into VMUsage (RemoteIP, Name, MemUsage, Slot, ProcID, Time) "+
-                        "VALUES('0.0.0.0', '" + procName + "', " + memUse.ToString() +", 0, "+ procID.ToString() +", " + lTime.ToString() + ");";
-                    lCnt = sql_cmd.ExecuteNonQuery();
-                }
-                // data is
-                // remoteIP|Name|MemUsage|Slot|ProcID|Time|idx
+                System.Diagnostics.Debug.WriteLine("line='" + aLines[i] + "'");
+                foreach (string s in fields)
+                    System.Diagnostics.Debug.Write(s + "\t");
+                System.Diagnostics.Debug.WriteLine("");
 
+                if ((fields.Length-2) % 3 == 0) //test for right number of fields
+                {
+                    //field 0 is datetime
+                    string sTime = fields[0];
+                    DateTime dt = DateTime.Parse(sTime);
+                    long lTime = dt.ToFileTimeUtc();
+                    for (int j = 1; j < fields.Length; j += 3)
+                    {
+                        try
+                        {
+                            //field 1 is procID
+                            int procID = int.Parse(fields[j].Replace("0x", ""),
+                                System.Globalization.NumberStyles.HexNumber |
+                                System.Globalization.NumberStyles.AllowLeadingWhite | System.Globalization.NumberStyles.AllowTrailingWhite);
+                            string procName = fields[j + 1].Replace("'", "");
+                            int memUse = int.Parse(fields[j + 2]);
+                            //int slot = 1;
+                            //string remoteIP = "0.0.0.0";
+                            //add data to DB
+                            sql_cmd.CommandText = "Insert Into VMUsage (RemoteIP, Name, MemUsage, Slot, ProcID, Time) " +
+                                "VALUES('0.0.0.0', '" + procName + "', " + memUse.ToString() + ", 0, " + procID.ToString() + ", " + lTime.ToString() + ");";
+                            lCnt = sql_cmd.ExecuteNonQuery();
+                            iRet += lCnt;
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine("Exception in Import(): " + ex.Message + "\nlast sqlCmd" + sql_cmd.CommandText);
+                        }
+                    }
+                    // data is
+                    // remoteIP|Name|MemUsage|Slot|ProcID|Time|idx
+                }
             }
             //convert db back to CSV (rotated)
             ExportMemUsage2CSV2(sFileCSV + "_n.csv", "0.0.0.0");
-
+            MessageBox.Show("exported data to '" + sFileCSV + "_n.csv'");
             return iRet;
         }
 

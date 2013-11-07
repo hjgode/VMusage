@@ -256,12 +256,12 @@ namespace VMusageRecvr
                 Application.DoEvents();
                 this.Enabled = false;
                 //dataAccess.ExportMemUsage2CSV2(sfd.FileName, "");
-
+                int iCnt = dataAccess.ImportMemUsageFromCSV(ofd.FileName);
                 Cursor.Current = Cursors.Default;
                 this.Enabled = true;
                 //DataAccess da = new DataAccess();
                 //da.export2CSV2(sfd.FileName, sIP);
-                MessageBox.Show("Import finished");
+                MessageBox.Show("Import/Export finished. "+iCnt.ToString() +" lines processed");
             }
             bAllowGUIupdate = true;
 
