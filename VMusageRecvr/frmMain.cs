@@ -49,6 +49,36 @@ namespace VMusageRecvr
             recvr.onEndOfTransfer += new RecvBroadcst.delegateEndOfTransfer(recvr_onEndOfTransfer);
 
             recvr.onUpdateMem += new RecvBroadcst.delegateUpdateMem(recvr_onUpdateMem);
+
+            dataAccess.newMsgEvent += new DataAccess.NewMessageEventHandler(dataAccess_newMsgEvent);
+        }
+
+        void dataAccess_newMsgEvent(object sender, DataAccess.MsgEventArgs args)
+        {
+            addLog2(args.msg);
+        }
+
+        delegate void SetTextCallback2(string text);
+        public void addLog2(string text)
+        {
+            // InvokeRequired required compares the thread ID of the
+            // calling thread to the thread ID of the creating thread.
+            // If these threads are different, it returns true.
+            if (this.txtLog2.InvokeRequired)
+            {
+                SetTextCallback2 d = new SetTextCallback2(addLog);
+                this.Invoke(d, new object[] { text });
+            }
+            else
+            {
+                if (txtLog2.Text.Length > 8000)
+                    txtLog2.Text = "";
+                txtLog2.Text += text + "\r\n";
+                txtLog2.SelectionLength = 0;
+                if(txtLog.Text.Length>0)
+                    txtLog2.SelectionStart = txtLog.Text.Length - 1;
+                txtLog2.ScrollToCaret();
+            }
         }
 
         void recvr_onUpdateMem(object sender, VMusage.MemoryInfoHelper data)

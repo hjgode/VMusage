@@ -30,7 +30,6 @@
         {
             this.txtLog = new System.Windows.Forms.TextBox();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
-            this.c2DPushGraph1 = new CustomUIControls.Graphing.C2DPushGraph();
             this.menuExit = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuUsage = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
@@ -38,10 +37,12 @@
             this.mnuExit = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuExport2CSV = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuImport = new System.Windows.Forms.ToolStripMenuItem();
-            this.panel1 = new System.Windows.Forms.Panel();
-            this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.dataToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuDataLoad = new System.Windows.Forms.ToolStripMenuItem();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.c2DPushGraph1 = new CustomUIControls.Graphing.C2DPushGraph();
+            this.txtLog2 = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.menuStrip1.SuspendLayout();
             this.panel1.SuspendLayout();
@@ -66,27 +67,6 @@
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.Size = new System.Drawing.Size(1140, 292);
             this.dataGridView1.TabIndex = 1;
-            // 
-            // c2DPushGraph1
-            // 
-            this.c2DPushGraph1.AutoAdjustPeek = false;
-            this.c2DPushGraph1.BackColor = System.Drawing.Color.Black;
-            this.c2DPushGraph1.GridColor = System.Drawing.Color.Green;
-            this.c2DPushGraph1.GridSize = ((ushort)(15));
-            this.c2DPushGraph1.HighQuality = true;
-            this.c2DPushGraph1.LineInterval = ((ushort)(5));
-            this.c2DPushGraph1.Location = new System.Drawing.Point(3, 139);
-            this.c2DPushGraph1.MaxLabel = "Max";
-            this.c2DPushGraph1.MaxPeekMagnitude = 100;
-            this.c2DPushGraph1.MinLabel = "Minimum";
-            this.c2DPushGraph1.MinPeekMagnitude = 0;
-            this.c2DPushGraph1.Name = "c2DPushGraph1";
-            this.c2DPushGraph1.ShowGrid = true;
-            this.c2DPushGraph1.ShowLabels = true;
-            this.c2DPushGraph1.Size = new System.Drawing.Size(501, 79);
-            this.c2DPushGraph1.TabIndex = 2;
-            this.c2DPushGraph1.Text = "c2DPushGraph1";
-            this.c2DPushGraph1.TextColor = System.Drawing.Color.Yellow;
             // 
             // menuExit
             // 
@@ -124,26 +104,42 @@
             // mnuExit
             // 
             this.mnuExit.Name = "mnuExit";
-            this.mnuExit.Size = new System.Drawing.Size(134, 22);
+            this.mnuExit.Size = new System.Drawing.Size(152, 22);
             this.mnuExit.Text = "Exit";
             this.mnuExit.Click += new System.EventHandler(this.mnuExit_Click);
             // 
             // mnuExport2CSV
             // 
             this.mnuExport2CSV.Name = "mnuExport2CSV";
-            this.mnuExport2CSV.Size = new System.Drawing.Size(134, 22);
+            this.mnuExport2CSV.Size = new System.Drawing.Size(152, 22);
             this.mnuExport2CSV.Text = "Export CSV";
             this.mnuExport2CSV.Click += new System.EventHandler(this.mnuExport2CSV_Click);
             // 
             // mnuImport
             // 
             this.mnuImport.Name = "mnuImport";
-            this.mnuImport.Size = new System.Drawing.Size(134, 22);
+            this.mnuImport.Size = new System.Drawing.Size(152, 22);
             this.mnuImport.Text = "Import CSV";
             this.mnuImport.Click += new System.EventHandler(this.mnuImport_Click);
             // 
+            // dataToolStripMenuItem
+            // 
+            this.dataToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.mnuDataLoad});
+            this.dataToolStripMenuItem.Name = "dataToolStripMenuItem";
+            this.dataToolStripMenuItem.Size = new System.Drawing.Size(43, 20);
+            this.dataToolStripMenuItem.Text = "Data";
+            // 
+            // mnuDataLoad
+            // 
+            this.mnuDataLoad.Name = "mnuDataLoad";
+            this.mnuDataLoad.Size = new System.Drawing.Size(100, 22);
+            this.mnuDataLoad.Text = "Load";
+            this.mnuDataLoad.Click += new System.EventHandler(this.mnuDataLoad_Click);
+            // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.txtLog2);
             this.panel1.Controls.Add(this.txtLog);
             this.panel1.Controls.Add(this.c2DPushGraph1);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Bottom;
@@ -170,20 +166,37 @@
             this.splitContainer1.SplitterDistance = 292;
             this.splitContainer1.TabIndex = 5;
             // 
-            // dataToolStripMenuItem
+            // c2DPushGraph1
             // 
-            this.dataToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.mnuDataLoad});
-            this.dataToolStripMenuItem.Name = "dataToolStripMenuItem";
-            this.dataToolStripMenuItem.Size = new System.Drawing.Size(43, 20);
-            this.dataToolStripMenuItem.Text = "Data";
+            this.c2DPushGraph1.AutoAdjustPeek = false;
+            this.c2DPushGraph1.BackColor = System.Drawing.Color.Black;
+            this.c2DPushGraph1.GridColor = System.Drawing.Color.Green;
+            this.c2DPushGraph1.GridSize = ((ushort)(15));
+            this.c2DPushGraph1.HighQuality = true;
+            this.c2DPushGraph1.LineInterval = ((ushort)(5));
+            this.c2DPushGraph1.Location = new System.Drawing.Point(3, 139);
+            this.c2DPushGraph1.MaxLabel = "Max";
+            this.c2DPushGraph1.MaxPeekMagnitude = 100;
+            this.c2DPushGraph1.MinLabel = "Minimum";
+            this.c2DPushGraph1.MinPeekMagnitude = 0;
+            this.c2DPushGraph1.Name = "c2DPushGraph1";
+            this.c2DPushGraph1.ShowGrid = true;
+            this.c2DPushGraph1.ShowLabels = true;
+            this.c2DPushGraph1.Size = new System.Drawing.Size(501, 79);
+            this.c2DPushGraph1.TabIndex = 2;
+            this.c2DPushGraph1.Text = "c2DPushGraph1";
+            this.c2DPushGraph1.TextColor = System.Drawing.Color.Yellow;
             // 
-            // mnuDataLoad
+            // txtLog2
             // 
-            this.mnuDataLoad.Name = "mnuDataLoad";
-            this.mnuDataLoad.Size = new System.Drawing.Size(152, 22);
-            this.mnuDataLoad.Text = "Load";
-            this.mnuDataLoad.Click += new System.EventHandler(this.mnuDataLoad_Click);
+            this.txtLog2.AcceptsReturn = true;
+            this.txtLog2.AcceptsTab = true;
+            this.txtLog2.Location = new System.Drawing.Point(646, 5);
+            this.txtLog2.Multiline = true;
+            this.txtLog2.Name = "txtLog2";
+            this.txtLog2.ReadOnly = true;
+            this.txtLog2.Size = new System.Drawing.Size(483, 113);
+            this.txtLog2.TabIndex = 3;
             // 
             // frmMain
             // 
@@ -225,6 +238,7 @@
         private System.Windows.Forms.ToolStripMenuItem mnuImport;
         private System.Windows.Forms.ToolStripMenuItem dataToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem mnuDataLoad;
+        private System.Windows.Forms.TextBox txtLog2;
     }
 }
 

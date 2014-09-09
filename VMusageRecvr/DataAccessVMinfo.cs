@@ -282,6 +282,7 @@ namespace DataAccessVM
             // 2. procfess name
             // 3. mem usage
             // the above repeats x times and the last field is the cummulated mem usage in paranthesis, ie (16244736)
+            OnNewMessage("reading import file...");
             List<string> lLines = new List<string>();
             using (TextReader sr = new StreamReader(sFileCSV))
             {
@@ -290,10 +291,14 @@ namespace DataAccessVM
                 // the file is reached.
                 while ((line = sr.ReadLine()) != null)
                 {
-                    if(line.Length>0)
+                    if (line.Length > 0)
+                    {
                         lLines.Add(line);
+                        iCnt++;
+                    }
                 }
             }
+            OnNewMessage(iCnt.ToString()+" lines read");
             //all lines read into memory
             string[] aLines = lLines.ToArray();
             lLines.Clear();
@@ -301,6 +306,7 @@ namespace DataAccessVM
             int lCnt = 0;
             for (int i = 0; i < aLines.Length; i++)
             {
+                OnNewMessage("processing line " + i.ToString());
                 Application.DoEvents();
                 //cleanup
                 aLines[i] = aLines[i].Replace("\t\t", "\t");
@@ -331,24 +337,42 @@ namespace DataAccessVM
                             uint memUse = uint.Parse(fields[j + 2]);
                             VMusage.procVMinfo procData = new VMusage.procVMinfo(procName, procID, memUse, 0, lTime);
                             data.Add(procData);
+                            //OnNewMessage("added new data: ");
                             //int slot = 1;
                             //string remoteIP = "0.0.0.0";
-                            //add data to DB
-                            sql_cmd.CommandText = "Insert Into VMUsage (RemoteIP, Name, MemUsage, Slot, ProcID, Time) " +
-                                "VALUES('127.0.0.1', '" + procName + "', " + memUse.ToString() + ", 0, " + procID.ToString() + ", " + lTime.ToString() + ");";
-                            lCnt = sql_cmd.ExecuteNonQuery();
-                            iRet += lCnt;
+                            string sMemuse="";
+                            string sProcID="";
+                            string sTimestamp = "";
+                            try
+                            {
+                                sMemuse      = memUse.ToString();
+                                sProcID      = procID.ToString();
+                                sTimestamp   = lTime.ToString();
+                                //add data to DB
+                                sql_cmd.CommandText = "Insert Into VMUsage (RemoteIP, Name, MemUsage, Slot, ProcID, Time) " +
+                                    "VALUES('127.0.0.1', '" + procName + "', " + memUse.ToString() + ", 0, " + procID.ToString() + ", " + lTime.ToString() + ");";
+                                lCnt = sql_cmd.ExecuteNonQuery();
+                                iRet += lCnt;
+                                //OnNewMessage("Inserted new data");
+                            }
+                            catch (Exception ex)
+                            {
+                                System.Diagnostics.Debug.WriteLine("Exception Import(): " + ex.Message);
+                                OnNewMessage("Exception Import(): " + ex.Message);
+                            }
                         }
                         catch (Exception ex)
                         {
                             System.Diagnostics.Debug.WriteLine("Exception in Import(): " + ex.Message + "\nlast sqlCmd" + sql_cmd.CommandText);
+                            OnNewMessage("Exception in Import(): " + ex.Message + "\nlast sqlCmd" + sql_cmd.CommandText);
                         }
                     }
                     // data is
                     // remoteIP|Name|MemUsage|Slot|ProcID|Time|idx
-                }
+                }//fields
             }
             //convert db back to CSV (rotated)
+            OnNewMessage("starting rotation...");
             ExportMemUsage2CSV2(sFileCSV + "_n.csv", "0.0.0.0");
             MessageBox.Show("exported data to '" + sFileCSV + "_n.csv'");
             return iRet;
@@ -370,6 +394,7 @@ namespace DataAccessVM
             sql_cmd.CommandText = "select * from vmUsage";
             SQLiteDataReader rdr = null;
 
+            OnNewMessage("Creating new table with process names...");
             //although exporting data in normal format is not to bad
             //better export by using a different layout
             // time \ nameX     nameY
@@ -383,7 +408,11 @@ namespace DataAccessVM
             {
                 rdr = sql_cmd.ExecuteReader(CommandBehavior.CloseConnection);
                 while (rdr.Read())
-                    lNames.Add(rdr["Name"].ToString());
+                {
+                    //do not save duplicate field names!
+                    if (!lNames.Contains(rdr["Name"].ToString().ToLower()))
+                        lNames.Add(rdr["Name"].ToString().ToLower());
+                }
             }
             catch (Exception ex)
             {
@@ -395,14 +424,17 @@ namespace DataAccessVM
             }
             if (lNames.Count == 0)
             {
+                OnNewMessage("No names found");
                 goto exit_cvs2;
             }
+            OnNewMessage("... found " + lNames.Count.ToString() + "processes");
 
-
+            string tempTableName = "[VMusageTEMP]";
             //create a table with the names as fields plus a field for the time
-            executeNonQuery("DROP TABLE IF EXISTS [VMusageTEMP];");
+            long lRes = executeNonQuery("DROP TABLE IF EXISTS "+tempTableName+";");
+
             // Define the SQL Create table statement, IF NOT EXISTS 
-            string createAppUserTableSQL = "CREATE TABLE IF NOT EXISTS [VMusageTEMP] (" +
+            string createAppUserTableSQL = "CREATE TABLE IF NOT EXISTS "+tempTableName+" (" +
                 "[Time] INTEGER NOT NULL, ";
             //add the fields with names
             foreach (string sFieldName in lNames)
@@ -411,16 +443,18 @@ namespace DataAccessVM
             createAppUserTableSQL += "[RemoteIP] TEXT DEFAULT '', ";
             //add idx field
             createAppUserTableSQL += "[idx] INTEGER PRIMARY KEY AUTOINCREMENT )";
-            //create Table
-            executeNonQuery(createAppUserTableSQL);
+            //create temp Table
+            lRes = executeNonQuery(createAppUserTableSQL);
+
             //add index
-            string SqlIndex = "CREATE INDEX [Time] on VMUsage (Name ASC);";
-            executeNonQuery(SqlIndex);
+            string SqlIndex = "CREATE INDEX IF NOT EXISTS [Time] on VMUsage (Name ASC);";
+            lRes = executeNonQuery(SqlIndex);
 
             //### get all distinct times
             List<ulong> lTimes = new List<ulong>();
             sql_cmd.CommandText = "Select DISTINCT Time from [VMusage] order by Time;";
             rdr = sql_cmd.ExecuteReader();
+            OnNewMessage("creating time table...");
             while (rdr.Read())
             {
                 lTimes.Add(Convert.ToUInt64(rdr["Time"]));
@@ -446,20 +480,23 @@ namespace DataAccessVM
                 Application.DoEvents();
             }
             rdr.Close();
-
+            OnNewMessage("created temp table");
             //now iterate thru all times and get the names and memuse values
             string sUpdateCommand = "";
             SQLiteTransaction tr = sql_con.BeginTransaction();
             //sql_cmd.CommandText = "insert into [ProcUsage]  (Time, [device.exe]) SELECT Time, User from [Processes] WHERE Time=631771077815940000 AND Process='device.exe';";
             int lCnt = 0;
+            OnNewMessage("processing " + lTimes.Count.ToString() + " time entries...");
             foreach (ulong uTime in lTimes)
             {
                 System.Diagnostics.Debug.WriteLine("Updating for Time=" + uTime.ToString());
+                OnNewMessage("Updating for Time=" + uTime.ToString());
                 //insert an empty row
-                sql_cmd.CommandText = "Insert Into VMUsageTemp (RemoteIP, Time) VALUES('0.0.0.0', " + uTime.ToString() + ");";
+                sql_cmd.CommandText = "Insert Into "+tempTableName+" (RemoteIP, Time) VALUES('0.0.0.0', " + uTime.ToString() + ");";
                 lCnt = sql_cmd.ExecuteNonQuery();
                 foreach (string sPName in lNames)
                 {
+                    OnNewMessage("processing " + sPName);
                     Application.DoEvents();
 
                     //is there already a line?
@@ -471,7 +508,7 @@ namespace DataAccessVM
                     {
                         System.Diagnostics.Debug.WriteLine("\tUpdating Memory=" + pm.memusage + " for Process=" + sPName);
                         //update values
-                        sUpdateCommand = "Update [VMUsageTemp] SET " +
+                        sUpdateCommand = "Update "+tempTableName+" SET " +
                             "[" + sPName + "]=" + pm.memusage +
                             ", [RemoteIP]='" + pm.sRemoteIP + "'" +
                             //"(SELECT User from [Processes]
@@ -499,10 +536,11 @@ namespace DataAccessVM
                 }
             }
             tr.Commit();
-
+            OnNewMessage("table update done");
             //export the table to CSV
             lCnt = 0;
             rdr = null;
+            OnNewMessage("exporting rotated table...");
             System.IO.StreamWriter sw = null;
             try
             {
@@ -520,7 +558,7 @@ namespace DataAccessVM
                 sFields.TrimEnd(new char[] { ';' });
                 sw.Write(sFields + "\r\n");
 
-                sql_cmd.CommandText = "Select * from VMUsageTemp;";
+                sql_cmd.CommandText = "Select * from "+tempTableName+";";
                 rdr = sql_cmd.ExecuteReader(CommandBehavior.CloseConnection);
                 while (rdr.Read())
                 {
@@ -538,13 +576,14 @@ namespace DataAccessVM
                 }
             }
             catch (Exception ex) {
-                MessageBox.Show("Exception in Select * from VMUsageTemp; " + ex.Message);
+                MessageBox.Show("Exception in Select * from "+tempTableName+"; " + ex.Message);
             }
             finally
             {
                 sw.Close();
                 rdr.Close();
             }
+            OnNewMessage("export done");
 exit_cvs2:
             sql_con.Close();
             return iCnt;
@@ -711,9 +750,9 @@ exit_cvs2:
         {
 #if !DEBUG1
             System.Diagnostics.Debug.WriteLine("DEBUG: dropTables()");
-            string dropTable = "DROP TABLE [Processes]";
+            string dropTable = "DROP TABLE IF EXISTS [Processes]";
             executeNonQuery(dropTable);
-            dropTable = "DROP TABLE [Threads]";
+            dropTable = "DROP TABLE IF EXISTS [Threads]";
             executeNonQuery(dropTable);
 #else
             System.Diagnostics.Debug.WriteLine("No DEBUG: no dropTables()");
@@ -734,7 +773,7 @@ exit_cvs2:
                 ")";
             executeNonQuery(createAppUserTableSQL);
 
-            string SqlIndex = "CREATE INDEX [Name] on VMUsage (Name ASC);";
+            string SqlIndex = "CREATE INDEX IF NOT EXISTS [Name] on VMUsage (Name ASC);";
             executeNonQuery(SqlIndex);
 
             ////a view
@@ -918,6 +957,33 @@ exit_cvs2:
         public void ClearData()
         {
             dtVMUsage.Clear();
+        }
+
+        public class MsgEventArgs : EventArgs
+        {
+            public string msg;
+            public MsgEventArgs(string sMsg)
+            {
+                msg = sMsg;
+            }
+        }
+        bool _bHandleEvents=true;
+        public delegate void NewMessageEventHandler(object sender, MsgEventArgs args);
+        public event NewMessageEventHandler newMsgEvent;
+        protected virtual void OnNewMessage(string s)
+        {
+            OnNewMessage(new MsgEventArgs(s));
+        }
+        protected virtual void OnNewMessage(MsgEventArgs args)
+        {
+            if (!_bHandleEvents)
+                return;
+            System.Diagnostics.Debug.WriteLine("OnNewMessage: " + args.msg);
+            NewMessageEventHandler handler = newMsgEvent;
+            if (handler != null)
+            {
+                handler(this, args);
+            }
         }
     }
 }
