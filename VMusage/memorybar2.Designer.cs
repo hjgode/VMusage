@@ -35,7 +35,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.Name = "memorybar2";
-            this.Size = new System.Drawing.Size(338, 47);
+            this.Size = new System.Drawing.Size(338, 26);
             this.ResumeLayout(false);
 
         }

@@ -87,7 +87,7 @@ namespace VMusage
             int w = mainPanel.ClientSize.Width - 32;  //subtract the scrollbar on right
             int h = mainPanel.ClientSize.Height - capHeight;
             int wP = w - (2 * margin); ;
-            int hP = 32;// h / (panels.Length + 1 + margin);//need 32 panels with margin
+            int hP = SystemInformation.MenuHeight / 2;//32; 16;// h / (panels.Length + 1 + margin);//need 32 panels with margin
             VMusage.procVMinfo [] vmInfoA = vmInfos.ToArray();
 
             //use bar 0 for total
